@@ -78,8 +78,17 @@ def main():
                     package.write(
                         path, "goodwen-local/" + path.relative_to(SKILL).as_posix()
                     )
-            for name in ("LICENSE", "NOTICE", "README.md"):
+            for name in ("LICENSE", "NOTICE", "docs/build-plan.md"):
                 package.write(ROOT / name, "goodwen-local/" + name)
+            readme = ROOT / "README.md"
+            offline_readme = readme.read_text(encoding="utf-8").replace(
+                "(skills/goodwen-local/references/cloud.md)", "(references/cloud.md)"
+            )
+            package.writestr(
+                zipfile.ZipInfo.from_file(readme, "goodwen-local/README.md"),
+                offline_readme,
+                compress_type=zipfile.ZIP_DEFLATED,
+            )
             for asset in [config["python"], *config["wheels"]]:
                 package.write(
                     cache / asset["name"],
