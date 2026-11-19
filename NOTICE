@@ -1,0 +1,4 @@
+Goodwen Local
+The QML parser, validation, rendering, grading and language resources derive from
+Goodwen Cloud commit 0d74dafe8452, distributed under Apache License 2.0.
+Bundled runtime distributions include their Python and third-party license files.

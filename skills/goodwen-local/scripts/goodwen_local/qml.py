@@ -1,0 +1,625 @@
+"""
+    qml.parser 是 markdown 解析，把测验转变成结构化json
+"""
+from __future__ import annotations
+
+import re
+import uuid
+from typing import Any
+
+import yaml
+
+from .quiz_languages import normalize_language, validate_translations
+
+from .quiz_metadata import (
+    coerce_optional_int,
+    normalize_question_counts,
+    normalize_quiz_tags,
+)
+
+
+class QmlParseError(Exception):
+    def __init__(self, message: str, line: int | None = None):
+        super().__init__(message)
+        self.line = line
+
+
+_HEADER_RE = re.compile(
+    r"^##\s+(?P<label>.+?)\s+\[(?P<type>single|multiple|short)\]"
+    r"(?:\s+\((?P<points>\d+)\))?"
+    r"(?:\s+(?P<attrs>\{.*\}))?\s*$"
+)
+
+_OPTION_RE = re.compile(r"^\s*[-*]\s+(?P<key>[A-Z])(?P<correct>\*)?\)\s*(?P<body>.*)$")
+_ATTR_KV_RE = re.compile(r"(?P<k>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?P<v>[^,}]+)")
+_DURATION_RE = re.compile(r"^(?P<num>\d+)\s*(?P<unit>s|m|h)?$", re.IGNORECASE)
+_STANDALONE_MD_IMAGE_RE = re.compile(r"^\s*!\[[^\]]*]\((?P<path>[^)]+)\)\s*$")
+_KNOWN_SCORING_MODES = {"", "traits", "completion", "none"}
+
+
+def _v3_front_matter(front: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+    participant = front.get("participant", {})
+    if not isinstance(participant, dict):
+        raise QmlParseError("participant 必须是 mapping", line=1)
+    if set(participant) - {"title", "description", "instructions", "completion_message"}:
+        raise QmlParseError("participant 包含未知字段", line=1)
+    for key in ("title", "description", "completion_message"):
+        if key in participant and not isinstance(participant[key], str):
+            raise QmlParseError(f"participant.{key} 必须是字符串", line=1)
+    instructions = participant.get("instructions", [])
+    if not isinstance(instructions, list) or any(not isinstance(item, str) for item in instructions):
+        raise QmlParseError("participant.instructions 必须是字符串列表", line=1)
+    behavior = front.get("behavior")
+    if not isinstance(behavior, dict) or set(behavior) != {"allow_backtracking", "timing"}:
+        raise QmlParseError("behavior 必须显式声明 allow_backtracking 和 timing", line=1)
+    if not isinstance(behavior["allow_backtracking"], bool):
+        raise QmlParseError("behavior.allow_backtracking 必须是布尔值", line=1)
+    timing = behavior["timing"]
+    if not isinstance(timing, dict) or set(timing) != {"mode"} or timing["mode"] not in ("none", "per_question"):
+        raise QmlParseError("behavior.timing.mode 必须是 none 或 per_question", line=1)
+    if timing["mode"] == "per_question" and behavior["allow_backtracking"]:
+        raise QmlParseError("按题限时不支持返回修改", line=1)
+    return participant, behavior
+
+
+def _parse_attrs(attrs: str | None) -> dict[str, Any]:
+    if not attrs:
+        return {}
+    if not (attrs.startswith("{") and attrs.endswith("}")):
+        return {}
+    inner = attrs[1:-1].strip()
+    if not inner:
+        return {}
+    out: dict[str, Any] = {}
+    for part in inner.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if "=" in part:
+            m = _ATTR_KV_RE.match(part)
+            if not m:
+                continue
+            k = m.group("k")
+            v_raw = m.group("v").strip().strip('"').strip("'")
+            if v_raw.lower() in {"true", "false"}:
+                out[k] = v_raw.lower() == "true"
+            else:
+                try:
+                    out[k] = int(v_raw)
+                except ValueError:
+                    out[k] = v_raw
+        else:
+            out[part] = True
+    return out
+
+
+def _split_front_matter_with_offset(text: str) -> tuple[dict[str, Any], str, int]:
+    """返回头部、正文，以及正文前的源码行数。"""
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return {}, text, 0
+    end = None
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            end = i
+            break
+    if end is None:
+        raise QmlParseError("Front matter started but not closed", line=1)
+    fm_text = "\n".join(lines[1:end])
+    body = "\n".join(lines[end + 1 :])
+    try:
+        fm = yaml.safe_load(fm_text) or {}
+    except yaml.YAMLError as exc:
+        mark = getattr(exc, "problem_mark", None)
+        # YAML 内容从源码第 2 行开始，mark.line 则从 0 开始。
+        line = int(mark.line) + 2 if mark is not None else 1
+        raise QmlParseError("Front Matter YAML 无效", line=line) from exc
+    if not isinstance(fm, dict):
+        raise QmlParseError("Front matter must be a YAML mapping", line=1)
+    return fm, body, end + 1
+
+
+def _split_front_matter(text: str) -> tuple[dict[str, Any], str]:
+    front_matter, body, _offset = _split_front_matter_with_offset(text)
+    return front_matter, body
+
+
+def _parse_answer_time_seconds(raw: Any, *, qid: str, line: int) -> int | None:
+    if raw in {None, ""}:
+        raise QmlParseError(f"{qid} 缺少 answer_time", line=line)
+
+    seconds: int
+    if isinstance(raw, bool):
+        raise QmlParseError(f"{qid} invalid answer_time, expected 1s..1h", line=line)
+
+    if isinstance(raw, int):
+        seconds = raw
+    else:
+        text = str(raw).strip().lower()
+        m = _DURATION_RE.fullmatch(text)
+        if not m:
+            raise QmlParseError(
+                f"{qid} invalid answer_time, expected integer seconds or suffix s/m/h",
+                line=line,
+            )
+        num = int(m.group("num"))
+        unit = (m.group("unit") or "s").lower()
+        factor = {"s": 1, "m": 60, "h": 3600}[unit]
+        seconds = num * factor
+
+    if seconds < 1 or seconds > 3600:
+        raise QmlParseError(f"{qid} answer_time out of range, expected 1..3600 seconds", line=line)
+    return seconds
+
+
+def _extract_edge_image(lines: list[str]) -> str:
+    non_empty = [line.strip() for line in lines if line.strip()]
+    if len(non_empty) != 1:
+        return ""
+    match = _STANDALONE_MD_IMAGE_RE.fullmatch(non_empty[0])
+    if not match:
+        return ""
+    return str(match.group("path") or "").strip()
+
+
+# 解析mardown测验
+def parse_qml_markdown(markdown_text: str) -> tuple[dict[str, Any], dict[str, Any]]:
+    front_matter, body, body_line_offset = _split_front_matter_with_offset(markdown_text)
+    try:
+        tags = normalize_quiz_tags(front_matter.get("tags"), strict=True)
+        schema_version = coerce_optional_int(
+            front_matter.get("schema_version"),
+            strict=True,
+            field="schema_version",
+        )
+        question_count = coerce_optional_int(
+            front_matter.get("question_count"),
+            strict=True,
+            field="question_count",
+        )
+        question_counts = normalize_question_counts(front_matter.get("question_counts"), strict=True)
+        estimated_duration_minutes = coerce_optional_int(
+            front_matter.get("estimated_duration_minutes"),
+            strict=True,
+            field="estimated_duration_minutes",
+        )
+    except ValueError as exc:
+        raise QmlParseError(str(exc), line=1) from exc
+
+    format_value = front_matter.get("format", "")
+    is_v3 = schema_version == 3 or format_value == "qml-v3"
+    if is_v3 and (schema_version != 3 or format_value != "qml-v3"):
+        raise QmlParseError("QML v3 必须同时声明 schema_version: 3 和 format: qml-v3", line=1)
+    if schema_version not in (None, 2, 3) or format_value not in ("", "qml-v2", "qml-v3"):
+        raise QmlParseError("不支持的 QML 版本", line=1)
+    participant, behavior = _v3_front_matter(front_matter) if is_v3 else ({}, {})
+    if not is_v3 and ("participant" in front_matter or "behavior" in front_matter):
+        raise QmlParseError("participant / behavior 需要 QML v3", line=1)
+    if estimated_duration_minutes is not None and estimated_duration_minutes <= 0:
+        raise QmlParseError("estimated_duration_minutes 必须为正整数", line=1)
+
+    try:
+        if "language" in front_matter and not isinstance(front_matter["language"], str):
+            raise ValueError("language 必须是支持的语言代码字符串")
+        language = normalize_language(front_matter.get("language"))
+    except ValueError as exc:
+        raise QmlParseError(str(exc), line=1) from exc
+    exam_id = str(front_matter.get("id") or f"exam-{uuid.uuid4().hex[:8]}")
+    exam: dict[str, Any] = {
+        "id": exam_id,
+        "title": front_matter.get("title", ""),
+        "language": language,
+        "description": front_matter.get("description", ""),
+        "tags": tags,
+        "schema_version": schema_version,
+        "format": front_matter.get("format", ""),
+        "question_count": question_count,
+        "question_counts": question_counts,
+        "estimated_duration_minutes": estimated_duration_minutes,
+        "welcome_image": front_matter.get("welcome_image", ""),
+        "end_image": front_matter.get("end_image", ""),
+        "llm": front_matter.get("llm", {}) or {},
+        "trait": front_matter.get("trait", {}) or {},
+        "questions": [],
+    }
+
+    if "language" not in front_matter:
+        exam.pop("language", None)
+
+    public_exam = {
+        k: exam[k]
+        for k in [
+            "id",
+            "title",
+            "language",
+            "description",
+            "tags",
+            "schema_version",
+            "format",
+            "question_count",
+            "question_counts",
+            "estimated_duration_minutes",
+            "welcome_image",
+            "end_image",
+            "trait",
+        ]
+        if k in exam
+    }
+    public_exam["questions"] = []
+    public_exam.pop("description", None)
+    if is_v3:
+        exam.update(participant=participant, behavior=behavior)
+        public_exam.update(participant=participant, behavior=behavior)
+
+    lines = body.splitlines()
+
+    def line_no(idx: int) -> int:
+        return body_line_offset + idx + 1
+
+    parse_end = len(lines)
+    j = len(lines) - 1
+    while j >= 0 and not lines[j].strip():
+        j -= 1
+    if j >= 0:
+        end_image = _extract_edge_image([lines[j]])
+        if end_image:
+            exam["end_image"] = end_image
+            public_exam["end_image"] = end_image
+            parse_end = j
+
+    header_indices = [idx for idx, line in enumerate(lines[:parse_end]) if _HEADER_RE.match(line.strip())]
+    if is_v3:
+        for idx, line in enumerate(lines[:parse_end]):
+            if re.match(r"^##\s+.+?\s+\[(single|multiple|short)\]", line.strip()) and not _HEADER_RE.fullmatch(line.strip()):
+                raise QmlParseError("题头格式错误，answer_time 等属性必须写在 {...} 内", line=line_no(idx))
+        if not header_indices:
+            raise QmlParseError("QML v3 至少需要一道有效题目", line=1)
+    if not header_indices:
+        try:
+            exam["translations"] = validate_translations(exam, front_matter.get("translations", {}))
+        except ValueError as exc:
+            raise QmlParseError(str(exc), line=1) from exc
+        if "translations" in front_matter:
+            public_exam["translations"] = exam["translations"]
+        else:
+            exam.pop("translations", None)
+        return exam, public_exam
+
+    welcome_image = _extract_edge_image(lines[: header_indices[0]])
+    if welcome_image:
+        exam["welcome_image"] = welcome_image
+        public_exam["welcome_image"] = welcome_image
+
+    seen_qids: set[str] = set()
+    auto_q_counter = 0
+
+    def _bump_counter_from_qid(qid: str) -> None:
+        nonlocal auto_q_counter
+        m2 = re.match(r"^Q(\d+)$", qid)
+        if not m2:
+            return
+        try:
+            n = int(m2.group(1))
+        except Exception:
+            return
+        auto_q_counter = max(auto_q_counter, n)
+
+    def _next_auto_qid() -> str:
+        nonlocal auto_q_counter
+        while True:
+            auto_q_counter += 1
+            qid = f"Q{auto_q_counter}"
+            if qid not in seen_qids:
+                return qid
+
+    def _parse_question_segment(start_idx: int, end_idx: int) -> tuple[dict[str, Any], dict[str, Any]]:
+        i = start_idx
+        question_line = line_no(start_idx)
+        line = lines[i]
+        m = _HEADER_RE.match(line.strip())
+
+        label = m.group("label").strip()
+        qid = label
+        if not re.fullmatch(r"Q[0-9A-Za-z_-]+", qid):
+            qid = _next_auto_qid()
+        _bump_counter_from_qid(qid)
+        if qid in seen_qids:
+            raise QmlParseError(f"Duplicate QID: {qid}", line=question_line)
+        seen_qids.add(qid)
+
+        qtype = m.group("type")
+        raw_points = m.group("points")
+        points = int(raw_points or 0)
+        attrs = _parse_attrs(m.group("attrs"))
+        scoring_mode = str(attrs.get("scoring") or "").strip().lower()
+        is_unscored = scoring_mode == "none"
+        if is_unscored and not is_v3:
+            raise QmlParseError(f"{qid} scoring=none 需要 QML v3", line=question_line)
+        if scoring_mode not in _KNOWN_SCORING_MODES:
+            raise QmlParseError(
+                f"{qid} unsupported scoring mode: {scoring_mode}",
+                line=question_line,
+            )
+        if scoring_mode and not is_unscored and qtype not in {"single", "multiple"}:
+            raise QmlParseError(
+                f"{qid} scoring mode only supports single/multiple",
+                line=question_line,
+            )
+        if scoring_mode == "traits" and qtype != "single":
+            raise QmlParseError(
+                f"{qid} traits scoring only supports single",
+                line=question_line,
+            )
+        is_trait_single = qtype == "single" and scoring_mode == "traits"
+        is_completion_choice = qtype in {"single", "multiple"} and scoring_mode == "completion"
+        partial = bool(attrs.get("partial", False))
+        media = attrs.get("media", "")
+        max_points = int(attrs.get("max", points if points else 0) or 0)
+        if is_v3 and behavior["timing"]["mode"] == "none":
+            if "answer_time" in attrs:
+                raise QmlParseError(f"{qid} 不限时模式禁止 answer_time", line=question_line)
+            answer_time_seconds = None
+        else:
+            answer_time_seconds = _parse_answer_time_seconds(attrs.get("answer_time"), qid=qid, line=question_line)
+
+        if is_unscored and (raw_points is not None or set(attrs) & {"max", "partial", "points", "traits"}):
+            raise QmlParseError(f"{qid} 无评分题禁止分值、max、partial 和 traits", line=question_line)
+        if not is_unscored and qtype == "short" and max_points <= 0:
+            raise QmlParseError(
+                f"{qid} missing max points, expected {{max=N}}",
+                line=question_line,
+            )
+        if is_trait_single:
+            if raw_points is None:
+                raise QmlParseError(
+                    f"{qid} missing points, expected (0) for trait single",
+                    line=question_line,
+                )
+        elif not is_unscored and qtype != "short" and points <= 0:
+            raise QmlParseError(
+                f"{qid} 缺少有效分值。请将正整数分值写在题型后，例如："
+                f"`## {qid} [{qtype}] (3)`。选项文案中的 `(3)` 不作为题目分值。",
+                line=question_line,
+            )
+
+        i += 1
+
+        stem_lines: list[str] = []
+        options: list[dict[str, Any]] = []
+        rubric: str | None = None
+        llm_block: str | None = None
+
+        while i < end_idx:
+            cur = lines[i]
+
+            if cur.strip() == "[rubric]":
+                i += 1
+                rb: list[str] = []
+                while i < end_idx and lines[i].strip() != "[/rubric]":
+                    # Allow missing closing tag: end rubric when the next question header starts.
+                    if _HEADER_RE.match(lines[i].strip()):
+                        break
+                    rb.append(lines[i])
+                    i += 1
+                if i < end_idx and lines[i].strip() == "[/rubric]":
+                    i += 1
+                rubric = "\n".join(rb).strip()
+                continue
+
+            if cur.strip() == "[llm]":
+                i += 1
+                lb: list[str] = []
+                while i < end_idx and lines[i].strip() != "[/llm]":
+                    if _HEADER_RE.match(lines[i].strip()):
+                        break
+                    lb.append(lines[i])
+                    i += 1
+                if i < end_idx and lines[i].strip() == "[/llm]":
+                    i += 1
+                llm_block = "\n".join(lb).strip()
+                continue
+
+            opt_m = _OPTION_RE.match(cur)
+            if opt_m:
+                key = opt_m.group("key")
+                body_text = opt_m.group("body").strip()
+                correct = bool(opt_m.group("correct"))
+                traits: dict[str, int] = {}
+                opt_points: int | None = None
+                body_text, opt_attrs = _split_option_body_and_attrs(body_text)
+                if opt_attrs:
+                    traits = opt_attrs.get("traits") or {}
+                    if "points" in opt_attrs:
+                        opt_points = opt_attrs["points"]
+                options.append(
+                    {
+                        "key": key,
+                        "text": body_text,
+                        "correct": correct,
+                        "points": opt_points,
+                        "traits": traits,
+                    }
+                )
+                i += 1
+                continue
+
+            stem_lines.append(cur)
+            i += 1
+
+        stem_md = "\n".join(stem_lines).strip()
+
+        if qtype in {"single", "multiple"} and not options:
+            raise QmlParseError(f"{qid} missing options", line=question_line)
+        if qtype in {"single", "multiple"}:
+            correct_keys = [o["key"] for o in options if o["correct"]]
+            if is_trait_single:
+                if correct_keys:
+                    raise QmlParseError(
+                        f"{qid} trait single must not use correct option (*)",
+                        line=question_line,
+                    )
+            elif is_completion_choice or is_unscored:
+                if correct_keys:
+                    raise QmlParseError(
+                        f"{qid} completion choice must not use correct option (*)",
+                        line=question_line,
+                    )
+                if any((o.get("traits") or {}) for o in options):
+                    raise QmlParseError(
+                        f"{qid} completion choice must not use option traits",
+                        line=question_line,
+                    )
+            elif not correct_keys:
+                raise QmlParseError(f"{qid} has no correct option (*)", line=question_line)
+            if not is_trait_single and not is_completion_choice and not is_unscored and qtype == "single" and len(correct_keys) != 1:
+                raise QmlParseError(
+                    f"{qid} single must have exactly 1 correct option",
+                    line=question_line,
+                )
+        if is_unscored and (rubric is not None or any(o["points"] is not None or o["correct"] or o["traits"] for o in options)):
+            raise QmlParseError(f"{qid} 无评分题禁止评分标准、正确答案、选项分值和 traits", line=question_line)
+        if qtype == "short" and not is_unscored and not rubric:
+            raise QmlParseError(f"{qid} short missing [rubric] block", line=question_line)
+
+        q_llm = _parse_llm_block(llm_block) if llm_block else None
+
+        q = {
+            "qid": qid,
+            "label": label,
+            "type": qtype,
+            "points": points if qtype != "short" else max_points,
+            "max_points": max_points if qtype == "short" else points,
+            "partial": partial,
+            "media": media,
+            "answer_time_seconds": answer_time_seconds,
+            "stem_md": stem_md,
+            "options": options,
+            "rubric": rubric,
+            "llm": q_llm,
+        }
+        if scoring_mode:
+            q["scoring_mode"] = scoring_mode
+
+        public_q = {
+            "qid": qid,
+            "label": label,
+            "type": qtype,
+            "points": q["points"],
+            "max_points": q["max_points"],
+            "partial": partial,
+            "media": media,
+            "answer_time_seconds": answer_time_seconds,
+            "stem_md": stem_md,
+            "options": [{"key": o["key"], "text": o["text"]} for o in options],
+        }
+        if scoring_mode:
+            public_q["scoring_mode"] = scoring_mode
+        return q, public_q
+
+    for pos, start_idx in enumerate(header_indices):
+        end_idx = header_indices[pos + 1] if pos + 1 < len(header_indices) else parse_end
+        q, public_q = _parse_question_segment(start_idx, end_idx)
+        exam["questions"].append(q)
+        public_exam["questions"].append(public_q)
+    try:
+        translations = validate_translations(exam, front_matter.get("translations", {}))
+    except ValueError as exc:
+        raise QmlParseError(str(exc), line=1) from exc
+    if "translations" in front_matter:
+        exam["translations"] = translations
+        public_exam["translations"] = translations
+    return exam, public_exam
+
+
+def _parse_llm_block(text: str) -> dict[str, Any]:
+    out: dict[str, Any] = {}
+    lines = [l.strip() for l in text.splitlines() if l.strip()]
+    if not lines:
+        return out
+    has_kv = any("=" in l for l in lines)
+    if not has_kv:
+        out["prompt_template"] = "\n".join(lines).strip()
+        return out
+    for l in lines:
+        if "=" not in l:
+            continue
+        k, v = l.split("=", 1)
+        out[k.strip()] = v.strip()
+    return out
+
+
+def _parse_traits(text: str) -> dict[str, int]:
+    out: dict[str, int] = {}
+    for part in text.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if ":" in part:
+            k, v = part.split(":", 1)
+        elif "=" in part:
+            k, v = part.split("=", 1)
+        else:
+            continue
+        try:
+            out[k.strip()] = int(v.strip())
+        except ValueError:
+            continue
+    return out
+
+
+def _parse_option_attrs(attrs: str) -> dict[str, Any]:
+    if not (attrs.startswith("{") and attrs.endswith("}")):
+        return {}
+    inner = attrs[1:-1].strip()
+    if not inner:
+        return {}
+    out: dict[str, Any] = {"traits": {}}
+    traits: dict[str, int] = {}
+    for part in inner.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if part.startswith("traits:"):
+            traits.update(_parse_traits(part[len("traits:") :].strip()))
+            continue
+        if "=" in part:
+            m = _ATTR_KV_RE.match(part)
+            if not m:
+                continue
+            k = m.group("k")
+            v_raw = m.group("v").strip().strip('"').strip("'")
+            if k == "points":
+                try:
+                    out["points"] = int(v_raw)
+                except ValueError:
+                    continue
+            elif k == "traits":
+                traits.update(_parse_traits(v_raw))
+            else:
+                out[k] = v_raw
+    out["traits"] = traits
+    return out
+
+
+def _has_option_attrs(attrs: dict[str, Any]) -> bool:
+    if not isinstance(attrs, dict) or not attrs:
+        return False
+    if attrs.get("traits"):
+        return True
+    return any(key != "traits" for key in attrs)
+
+
+def _split_option_body_and_attrs(body_text: str) -> tuple[str, dict[str, Any]]:
+    body = str(body_text or "").strip()
+    if "{" not in body or not body.endswith("}"):
+        return body, {}
+
+    left = body.rfind("{")
+    if left <= 0 or not body[left - 1].isspace():
+        return body, {}
+
+    attr_text = body[left:]
+    attrs = _parse_option_attrs(attr_text)
+    if not _has_option_attrs(attrs):
+        return body, {}
+    return body[:left].rstrip(), attrs

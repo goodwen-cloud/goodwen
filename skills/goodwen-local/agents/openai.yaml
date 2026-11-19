@@ -1,0 +1,4 @@
+interface:
+  display_name: "Goodwen Local"
+  short_description: "在本机制作、试填和收集问卷，发布到 Goodwen 获取公网链接"
+  default_prompt: "用 $goodwen-local 把我的材料做成可以试填和发放的问卷。"
