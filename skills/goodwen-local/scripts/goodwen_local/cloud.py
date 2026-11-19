@@ -203,6 +203,8 @@ def sync(lib, *, connect=False, only=None):
         return {"status": "paused"}
     with Codex(interactive=connect) as client:
         ws = workspace(client, lib, connect=connect)
+        if lib.pref("paused") == "yes":
+            return {"workspace": ws, "status": "paused", "items": []}
         if only:
             return transfer(client, lib, ws, lib.snapshot(only))
         return {"workspace": ws, "items": drain(client, lib, ws)}

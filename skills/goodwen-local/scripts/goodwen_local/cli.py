@@ -209,7 +209,13 @@ def run(args):
         }
     if cmd == "save":
         saved = lib.save(args.path)
-        if lib.pref("workspace") and lib.pref("paused") != "yes":
+        workspace = lib.pref("workspace")
+        if (
+            workspace
+            and not saved["local_only"]
+            and saved["workspace"] in (None, workspace)
+            and lib.pref("paused") != "yes"
+        ):
             from .cloud import sync
 
             try:

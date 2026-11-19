@@ -1,5 +1,6 @@
 """本机作者入口和按需开放的独立局域网参与者监听器。"""
 
+import errno
 import ipaddress
 import json
 import mimetypes
@@ -73,7 +74,12 @@ class Application:
                     port = (
                         saved.get("port", 0) if saved.get("address") == address else 0
                     )
-                    self.public = self.listener(address, port, False)
+                    try:
+                        self.public = self.listener(address, port, False)
+                    except OSError as exc:
+                        if not port or exc.errno != errno.EADDRINUSE:
+                            raise
+                        self.public = self.listener(address, 0, False)
                 except OSError as exc:
                     raise ValueError("无法在指定的 IPv4 网卡上发放问卷") from exc
                 self.address = address

@@ -113,7 +113,7 @@ class Library:
         visible = set(collect_rendered_quiz_image_references(public))
         with self.db(write=True) as db:
             survey = db.execute(
-                "SELECT id FROM survey WHERE path=?", (str(path),)
+                "SELECT id,local_only,owner FROM survey WHERE path=?", (str(path),)
             ).fetchone()
             survey_id = survey[0] if survey else str(uuid.uuid4())
             if not survey:
@@ -156,6 +156,8 @@ class Library:
         return {
             "survey_id": survey_id,
             "snapshot_id": snapshot,
+            "local_only": bool(survey and survey["local_only"]),
+            "workspace": survey["owner"] if survey else None,
             "title": validated.title,
             "digest": digest,
         }
