@@ -13,7 +13,7 @@ from urllib.request import Request, urlopen
 from zipfile import ZipFile
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL = ROOT / "skills/goodwen-local"
+SKILL = ROOT / "skills/goodwen"
 LOCK = json.loads((SKILL / "scripts/runtime-lock.json").read_text())
 
 
@@ -62,8 +62,8 @@ def main():
         list(pool.map(lambda x: fetch(x, cache), assets.values()))
     if args.fetch_only:
         return
-    target = ROOT / "dist"
-    target.mkdir(exist_ok=True)
+    target = ROOT / "dist/local"
+    target.mkdir(parents=True, exist_ok=True)
     checksums = []
     for os_name in platforms:
         config = LOCK["platforms"][os_name]
@@ -75,24 +75,20 @@ def main():
                     and "__pycache__" not in path.parts
                     and path.suffix != ".pyc"
                 ):
-                    package.write(
-                        path, "goodwen-local/" + path.relative_to(SKILL).as_posix()
-                    )
+                    package.write(path, path.relative_to(SKILL.parent).as_posix())
             for name in ("LICENSE", "NOTICE", "docs/build-plan.md"):
-                package.write(ROOT / name, "goodwen-local/" + name)
+                package.write(ROOT / name, f"{SKILL.name}/{name}")
             readme = ROOT / "README.md"
-            offline_readme = readme.read_text(encoding="utf-8").replace(
-                "(skills/goodwen-local/references/cloud.md)", "(references/cloud.md)"
-            )
+            offline_readme = readme.read_text(encoding="utf-8").partition("## 源码与构建")[0].rstrip() + "\n"
             package.writestr(
-                zipfile.ZipInfo.from_file(readme, "goodwen-local/README.md"),
+                zipfile.ZipInfo.from_file(readme, f"{SKILL.name}/README.md"),
                 offline_readme,
                 compress_type=zipfile.ZIP_DEFLATED,
             )
             for asset in [config["python"], *config["wheels"]]:
                 package.write(
                     cache / asset["name"],
-                    "goodwen-local/offline/" + asset["name"],
+                    f"{SKILL.name}/offline/" + asset["name"],
                     compress_type=zipfile.ZIP_STORED,
                 )
     for archive in sorted(target.glob(f"goodwen-local-{LOCK['version']}-*.zip")):

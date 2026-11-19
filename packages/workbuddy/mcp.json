@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "goodwen": {
+      "type": "streamableHttp",
+      "url": "https://goodwen.cc/mcp",
+      "timeout": 30000
+    }
+  }
+}

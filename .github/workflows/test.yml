@@ -1,4 +1,4 @@
-name: Verify Goodwen Local
+name: Verify Goodwen
 on: [push, pull_request]
 jobs:
   native:
@@ -19,11 +19,18 @@ jobs:
       - run: python -m unittest discover -s tests
       - run: python tools/build_release.py --platform ${{ matrix.platform }}
       - name: Extract the complete skill
-        run: python -m zipfile -e dist/goodwen-local-0.1.0-${{ matrix.platform }}.zip unpacked
+        shell: python
+        run: |
+          import json
+          from pathlib import Path
+          from zipfile import ZipFile
+          version = json.loads(Path("skills/goodwen/scripts/runtime-lock.json").read_text())["version"]
+          with ZipFile(f"dist/local/goodwen-local-{version}-${{ matrix.platform }}.zip") as package:
+              package.extractall("unpacked")
       - name: Validate with the offline runtime
         if: runner.os != 'Windows'
-        run: sh unpacked/goodwen-local/scripts/run.sh validate unpacked/goodwen-local/examples/feedback/quiz.md
+        run: sh unpacked/goodwen/scripts/run.sh validate unpacked/goodwen/examples/feedback/quiz.md
       - name: Validate with the offline runtime on Windows
         if: runner.os == 'Windows'
         shell: powershell
-        run: '& .\unpacked\goodwen-local\scripts\run.ps1 validate .\unpacked\goodwen-local\examples\feedback\quiz.md'
+        run: '& .\unpacked\goodwen\scripts\run.ps1 validate .\unpacked\goodwen\examples\feedback\quiz.md'

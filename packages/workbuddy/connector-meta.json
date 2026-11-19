@@ -1,0 +1,34 @@
+{
+  "name": "Goodwen 顾得问",
+  "name_zh": "Goodwen 顾得问",
+  "name_en": "Goodwen",
+  "description": "Use AI agents to ask focused questions, collect human responses, and build traceable evidence for decisions.",
+  "description_zh": "AI 评估与决策工作流：依据选定资料提问，收集真人回答，分析差异并追溯依据，支持需求调研、供应商评估、招聘与培训测评。",
+  "description_en": "Use AI agents to ask focused questions, collect human responses, and build traceable evidence for decisions.",
+  "source": "goodwen",
+  "type": "mcp",
+  "auth_mode": "server-side",
+  "server_auth": {
+    "auth_type": "mcp_oauth",
+    "data": {
+      "mcp_oauth": {
+        "server_url": "https://goodwen.cc/mcp",
+        "scopes": "offline_access packs:read questionnaires:read questionnaires:write distributions:write invitations:read results:read attention:read grading:propose results:write events:subscribe participant_materials:read participant_profiles:write"
+      }
+    }
+  },
+  "version": "0.1.4",
+  "minWorkbuddyVersion": "4.24.0",
+  "examples_zh": [
+    "根据这些产品资料设计一份客户需求调研，先交给我审核。",
+    "比较这些供应商的回答，列出需求差异、缺失证据和下一轮追问。",
+    "对照岗位要求和这份答卷，整理面试中需要进一步核实的问题。",
+    "按照已确认的评分标准评阅这些培训答卷，保存评分建议并指出薄弱点。"
+  ],
+  "examples_en": [
+    "Create a customer needs questionnaire from these product materials and give me the draft to review.",
+    "Compare these suppliers' responses and list differences, missing evidence, and follow-up questions.",
+    "Use the job requirements and this response to prepare questions for the interview.",
+    "Assess these training responses against the approved rubric and save grading suggestions with answer evidence."
+  ]
+}

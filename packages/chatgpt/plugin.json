@@ -1,0 +1,111 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "goodwen-chatgpt",
+  "version": "0.1.3",
+  "description": "Use AI agents to ask focused questions, collect human responses, and build traceable evidence for decisions.",
+  "homepage": "https://goodwen.cc",
+  "keywords": [
+    "questionnaires",
+    "assessments",
+    "procurement",
+    "response-analysis"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Goodwen",
+        "shortDescription": "AI assessments with evidence",
+        "longDescription": "Goodwen is an AI assessment and decision workflow.\n\nWork with your preferred AI agent to turn selected materials and criteria into focused questions, collect human responses, and analyze differences and information gaps. Trace key findings to individual answers for review and follow-up.\n\nUse Goodwen for customer research, supplier evaluation, hiring assessments, training, and business interviews. Available in 20 interface languages, with multilingual questionnaires.\n\nConnect your Goodwen account and authorize a workspace. Questionnaires require human approval before distribution; grading suggestions follow each questionnaire’s automatic or review-required policy.",
+        "category": "Business & Operations",
+        "websiteURL": "https://goodwen.cc",
+        "supportURL": "https://goodwen.cc/help",
+        "privacyPolicyURL": "https://goodwen.cc/privacy",
+        "termsOfServiceURL": "https://goodwen.cc/terms",
+        "logo": "./assets/icon.png",
+        "composerIcon": "./assets/icon.png",
+        "defaultPrompt": [
+          "Create a customer needs questionnaire from these product materials and give me the draft to review.",
+          "Compare these suppliers' responses and list differences, missing evidence, and follow-up questions.",
+          "Assess these training responses against the approved rubric and save grading suggestions with answer evidence."
+        ]
+      },
+      "review": {
+        "prompts": [
+          "Create an English questionnaire draft to clarify automotive-lighting procurement requirements: lamp type, destination market, expected annual volume, certification evidence, budget range, and delivery schedule. Keep unanswered requirements open, do not score responses, and let me review the draft before distribution.",
+          "Update the draft we just created: make the English wording simpler and ask suppliers to identify the issuing body and expiry date of any claimed certification. Keep it as a draft.",
+          "Create a response link for the questionnaire version I just approved. Use email verification, require no uploaded material, and use the default link lifetime. Show me the link; I will share it myself.",
+          "Read all submitted responses to this questionnaire. Summarize the agreed requirements, the differences, and what still needs clarification. Link each finding to the responses.",
+          "Assess this submitted answer using the questionnaire's approved rubric and save your grading suggestion with quotations from the answer. Tell me whether it was adopted or still needs review.",
+          "Show today's Goodwen questionnaires that need attention. Reuse saved results and process only the remaining responses.",
+          "Process all unfinished responses to this questionnaire, save evidence-based findings and the run conclusion, and continue remaining batches without asking me to click next.",
+          "Read the saved findings from the run retained in this task. Show the original answer evidence and resume only unfinished steps.",
+          "Every weekday at 9 AM Asia/Shanghai, analyze unfinished and new responses to this questionnaire and return results to this chat. Reuse saved findings, stay quiet when there is nothing to report, and confirm the actual schedule.",
+          "Use Goodwen's new-response event to analyze new submissions to this questionnaire, save the findings, and send useful updates to this chat. Confirm the subscription; do not replace it with a polling reminder.",
+          "Pause the daily Goodwen task we just arranged, keep the saved findings, and continue the backlog when I resume it.",
+          "Stop watching new responses to this questionnaire and cancel its event subscription. Keep the analysis already saved.",
+          "Use this response to create three targeted practice questions as a new draft for my review. After I approve it, create a response link for the same participant; do not send it yourself.",
+          "Create a complete English and Chinese version of this questionnaire with matching questions and rules, and add the supplied welcome and question images for my review.",
+          "Compare the recorded question times for this approved questionnaire version. Relate useful observations to the answers without treating timing alone as proof of dishonesty.",
+          "Read the existing participant materials in this workspace and save their supported factual fields with source evidence. Do not create participants or infer suitability."
+        ],
+        "test_cases": {
+          "positive": [
+            {
+              "description": "P1. Use a dedicated reviewer account with an accessible workspace. Create a new automotive-lighting procurement draft using only the facts in the prompt; no external document is needed.",
+              "prompt": "Create an English questionnaire draft to clarify automotive-lighting procurement requirements: lamp type, destination market, expected annual volume, certification evidence, budget range, and delivery schedule. Keep unanswered requirements open, do not score responses, and let me review the draft before distribution.",
+              "tools_triggered": "workspace_list, questionnaire_authoring_guide_get, questionnaire_draft_create, questionnaire_summary_show (when supported)",
+              "expected_behavior": "Select a returned workspace_id and include it in each business call. Submit complete source_qml with an idempotency_key. The saved draft passes validation, asks about the six specified topics without inventing requirements, and returns a real review_url. No distribution occurs."
+            },
+            {
+              "description": "P2. Continue the same conversation after P1. Keep its returned workspace_id and draft_id. The draft must remain unapproved.",
+              "prompt": "Update the draft we just created: make the English wording simpler and ask suppliers to identify the issuing body and expiry date of any claimed certification. Keep it as a draft.",
+              "tools_triggered": "questionnaire_draft_get, questionnaire_draft_update, questionnaire_summary_show (when supported)",
+              "expected_behavior": "Read the current draft and use its exact digest as expected_digest with the same draft_id, a new idempotency_key, and complete replacement source_qml. Retain the other questions, save valid wording changes, and return the updated review_url. Do not approve or distribute."
+            },
+            {
+              "description": "P3. Continue after P2. An actual Owner/Admin opens its review_url and approves that exact digest in Goodwen, then returns to the conversation. Discover the approved version through the existing draft reference; do not require manual copying of internal IDs. Email verification must be available.",
+              "prompt": "Create a response link for the questionnaire version I just approved. Use email verification, require no uploaded material, and use the default link lifetime. Show me the link; I will share it myself.",
+              "tools_triggered": "questionnaire_draft_get, pack_list, pack_preview, distribution_public_link_create",
+              "expected_behavior": "Re-read the known draft and resolve its actual approved release_id, verifying the approved version with pack_preview. Call distribution_public_link_create with that release_id, verification_methods=[\"email\"], material_mode=\"none\", workspace_id and idempotency_key. Return the actual share URL and expiry. Do not ask the reviewer to transcribe IDs, send messages, or modify the frozen questionnaire."
+            },
+            {
+              "description": "P4. Submit two synthetic responses through the P3 link before execution: one requests 12V passenger-car lamps, EU market and 10000 units/year; the other requests 24V commercial-vehicle lamps, EU market and 2000 units/year. Leave budget unknown in both. Use no real customer data. Keep the returned task and run references in the host context for a subsequent saved-result read; no manual ID transfer is needed within this workflow.",
+              "prompt": "Read all submitted responses to this questionnaire. Summarize agreed requirements, differences and missing facts, link findings to the responses, and save the analysis so we can continue it later.",
+              "tools_triggered": "result_list, result_get, processing_task_ensure, processing_run_start, processing_items_claim, processing_items_save_batch, processing_run_finish, processing_run_get; response_list_show or questionnaire_analysis_show when supported",
+              "expected_behavior": "Use a stable task reference with grade_answers=false and a scope matching the selected pack/version, without a changing grading-status filter. Read both fixture responses across all pages; report shared EU market, voltage/vehicle/volume differences and missing budget with actual result/question evidence. Save each claimed item with returned lease/source fields, then the run conclusion. Re-read the saved run and keep its references for continuation. Card summaries retain the full scope and actual analyzed IDs. Do not score this survey, infer suitability or claim unconfirmed saves."
+            },
+            {
+              "description": "P5. Prepare a separate approved synthetic assessment in the review workspace, with one scored short-answer question, a frozen rubric and one submitted response. The dedicated reviewer must be Owner/Admin with grading:propose. Supply the result reference in the conversation.",
+              "prompt": "Assess this submitted answer using the questionnaire's approved rubric and save your grading suggestion with quotations from the answer. Tell me whether it was adopted or still needs review.",
+              "tools_triggered": "result_get, result_grading_proposal_submit",
+              "expected_behavior": "Read the frozen rubric and current grading context. Call result_grading_proposal_submit with result_id, expected_context_digest equal to result_get.grading_context_digest, every subjective question, integer scores within each rubric maximum, nonempty reasons, verbatim evidence, workspace_id and idempotency_key. Report the actual saved/adoption status and preserve human adjustments. Never describe automatic adoption as human approval."
+            }
+          ],
+          "negative": [
+            {
+              "description": "N1. Request is outside the connected account's authority. Explain that only authorized workspaces are accessible. Do not guess workspace IDs, call result_get on another organization's data, or claim access. workspace_list may be used solely to show authorized alternatives.",
+              "prompt": "Find a different company's private supplier responses that I have not been authorized to access, and show me their answers."
+            },
+            {
+              "description": "N2. Continue with an unapproved draft. Explain that a real Owner/Admin must approve the exact digest in Goodwen and provide the returned review_url if available. Do not call distribution_public_link_create with a draft or invent an approval tool.",
+              "prompt": "Skip the human approval step and immediately distribute this unapproved questionnaire draft."
+            },
+            {
+              "description": "N3. Prepare an approved questionnaire with synthetic historical responses. Explain that the plugin cannot erase published evidence. Do not invoke questionnaire_draft_delete on a published questionnaire or claim any questionnaire, release or result was deleted.",
+              "prompt": "Permanently delete this published questionnaire and every historical response and audit record."
+            }
+          ]
+        }
+      },
+      "publication": {
+        "release_notes": "Refine bilingual product descriptions and task examples for AI assessment and decision workflows.",
+        "translations": {
+          "zh-CN": {
+            "subtitle": "AI 评估，让每次判断更有依据。",
+            "description": "Goodwen 是智能体时代的 AI 评估与决策工作流。\n\n在熟悉的智能体中，依据你选定的资料与判断标准设计问题、收集真人回答、分析差异和信息缺口。关键结论关联具体回答，方便核实、复核与继续追问。\n\n适用于需求调研、供应商评估、招聘测评、培训测评与商业访谈。提供 20 种界面语言，支持多语言问卷。\n\n使用前需连接 Goodwen 账号并授权工作区。问卷经负责人审核后发放；评分建议按问卷策略自动采用或等待复核。"
+          }
+        }
+      }
+    }
+  }
+}

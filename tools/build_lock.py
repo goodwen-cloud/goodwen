@@ -31,7 +31,7 @@ def main():
         name: fetch(f"https://pypi.org/pypi/{name}/{version}/json")["urls"]
         for name, version in VERSIONS.items()
     }
-    lock = {"version": "0.1.0", "platforms": {}}
+    lock = {"version": "0.1.1", "platforms": {}}
     for key, (target, os_tag, arch) in PLATFORMS.items():
         filename = f"cpython-{PYTHON_VERSION}+{PYTHON_TAG}-{target}-install_only_stripped.tar.gz"
         asset = next(item for item in release["assets"] if item["name"] == filename)
@@ -62,7 +62,7 @@ def main():
                 }
             )
         lock["platforms"][key] = {"python": runtime, "wheels": selected}
-    (ROOT / "skills/goodwen-local/scripts/runtime-lock.json").write_text(
+    (ROOT / "skills/goodwen/scripts/runtime-lock.json").write_text(
         json.dumps(lock, indent=2) + "\n", encoding="utf-8"
     )
     lines = []
@@ -71,7 +71,7 @@ def main():
         lines.append(
             f"{platform} {runtime['name']} {runtime['sha256']} {runtime['url']}"
         )
-    (ROOT / "skills/goodwen-local/scripts/python-lock.txt").write_text(
+    (ROOT / "skills/goodwen/scripts/python-lock.txt").write_text(
         "\n".join(lines) + "\n", encoding="utf-8"
     )
 

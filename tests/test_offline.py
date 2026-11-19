@@ -14,7 +14,7 @@ from urllib.error import HTTPError
 from urllib.request import HTTPCookieProcessor, ProxyHandler, Request, build_opener
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL = ROOT / "skills/goodwen-local"
+SKILL = ROOT / "skills/goodwen"
 sys.path.insert(0, str(SKILL / "scripts"))
 from goodwen_local.bundle import prepare_bundle
 from goodwen_local.cli import export

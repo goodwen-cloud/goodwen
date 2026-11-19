@@ -6,7 +6,7 @@ import textwrap
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL = ROOT / "skills/goodwen-local"
+SKILL = ROOT / "skills/goodwen"
 DEST = SKILL / "scripts/goodwen_local"
 
 

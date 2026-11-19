@@ -10,6 +10,8 @@ import time
 import webbrowser
 from urllib.parse import urlsplit
 
+from . import __version__
+
 ENDPOINT = "https://goodwen.cc/mcp"
 SCOPES = [
     "packs:read",
@@ -91,7 +93,7 @@ class Codex:
         try:
             self.rpc(
                 "initialize",
-                {"clientInfo": {"name": "goodwen-local", "version": "0.1.0"}},
+                {"clientInfo": {"name": "goodwen-local", "version": __version__}},
             )
             self.send({"method": "initialized"})
             if not exact:

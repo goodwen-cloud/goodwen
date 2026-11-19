@@ -1,0 +1,4 @@
+interface:
+  display_name: "Goodwen"
+  short_description: "用材料制作问卷，在本机试填、现场收卷或发布到 Goodwen"
+  default_prompt: "用 $goodwen 把我的材料做成可以试填和发放的问卷。"
