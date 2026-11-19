@@ -1,6 +1,8 @@
 import csv
 import json
+import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import threading
@@ -58,6 +60,20 @@ class OfflineTest(unittest.TestCase):
         self.assertEqual(len(digest), 64)
         self.assertNotEqual(self.snapshot, snapshot["id"])
         self.assertEqual(self.library.save(self.path)["snapshot_id"], snapshot["id"])
+
+    def test_local_only_save_with_connected_workspace_runs_offline(self):
+        env = {**os.environ, "GOODWEN_LOCAL_HOME": str(self.library.home), "PATH": ""}
+        runner = [sys.executable, str(SKILL / "scripts/run.py")]
+        self.library.set_pref("workspace", "connected-personal-workspace")
+        subprocess.run(
+            [*runner, "local-only", self.snapshot, "on"],
+            env=env,
+            capture_output=True,
+            check=True,
+        )
+        saved = subprocess.check_output([*runner, "save", str(self.path)], env=env)
+        self.assertTrue(json.loads(saved)["local_only"])
+        self.assertNotIn("cloud", json.loads(saved))
 
     def test_two_concurrent_browsers_preview_restart_and_export(self):
         app = Application(self.library)
