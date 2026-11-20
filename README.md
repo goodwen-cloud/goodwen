@@ -1,92 +1,86 @@
 <h1 align="center"><img src="packages/chatgpt/assets/icon.png" width="76" height="76" alt=""><br>Goodwen</h1>
+<p align="center"><strong>简体中文</strong> · <a href="README.en.md" lang="en">English</a></p>
 
-用 Goodwen 把手里的材料做成问卷，在智能体里查看填写者的真实回答。你可以先在电脑上试填，让同一 Wi-Fi 下的同事现场作答，也可以把问卷发布到 goodwen.cc，让外部客户用手机填写。
+Goodwen 帮你在智能体对话里把材料做成问卷，发给填写者，再用实际答卷回答问题。在 Codex 里可以先试填、现场收卷。要把问卷发给外地客户，就发布到 goodwen.cc，电脑关机后也能继续收卷。
 
-**[在 Codex 中用提示词安装](#本地-codex)**　·　[下载安装包](https://github.com/goodwen-cloud/goodwen/releases/latest)　·　[注册或登录 Goodwen](https://goodwen.cc/login)　·　[完整图文教程](docs/guide.md)
+[用 Codex 安装](#本地-codex) · [连接 ChatGPT 或 WorkBuddy](#chatgpt-和-workbuddy) · [注册或登录 Goodwen](https://goodwen.cc/login)
 
-<picture>
-  <source media="(max-width: 600px)" srcset="docs/media/survey-flow-mobile.svg">
-  <img src="docs/media/survey-flow.svg" alt="从材料拟题、试填，到现场或网上发放，再按问卷版本查看答卷">
-</picture>
-
-## 安装或连接 Goodwen
+## 做出第一份问卷
 
 ### 本地 Codex
 
-在本机的 Codex 对话里粘贴这段提示词即可安装，适用于 Windows x64、Apple Silicon Mac 和 Linux x64（glibc）。
+把这段提示词粘贴到本机的 Codex。首次运行需要联网，校验成功时会显示《服务体验回访》、共 2 道题。
 
 ```text
 $skill-installer 请从下面的 GitHub 地址安装 Goodwen，并用自带的服务回访示例验证安装。
 https://github.com/goodwen-cloud/goodwen/tree/main/skills/goodwen
 ```
 
-首次运行会联网准备本机环境。Codex 确认《服务体验回访》校验通过、共 2 道题后，在下一条消息里试填。
+安装后，新开一个 Codex 会话，试试这句话。也可以附上自己的材料，说明想问谁、想弄清什么。
 
 > 用 $goodwen 把自带的《服务体验回访》示例复制到当前工作目录。校验并保存问卷，给我作者试填链接。
 
-也可以直接附上自己的材料，说明想问谁、想弄清什么，并让智能体给你试填链接。
+打开链接，点「开始作答」，逐题保存，在「核对并提交」页检查选项和简答。作者试填单独记录。想改题时，在对话里说明要改哪里，再试填新版本。
 
 <details>
-<summary>在离线电脑上手动安装</summary>
+<summary>离线安装（Windows、macOS、Linux）</summary>
 
-在能联网的设备上下载目标电脑对应的离线包，包内已附运行环境。[Windows x64](https://github.com/goodwen-cloud/goodwen/releases/latest/download/goodwen-windows-x64.zip) · [macOS Apple Silicon](https://github.com/goodwen-cloud/goodwen/releases/latest/download/goodwen-macos-arm64.zip) · [Linux x64（glibc）](https://github.com/goodwen-cloud/goodwen/releases/latest/download/goodwen-linux-x64.zip)
+在能联网的设备上下载目标电脑对应的 ZIP。三个离线包都内置了运行环境。[Windows x64](https://github.com/goodwen-cloud/goodwen/releases/latest/download/goodwen-windows-x64.zip) · [macOS Apple Silicon](https://github.com/goodwen-cloud/goodwen/releases/latest/download/goodwen-macos-arm64.zip) · [Linux x64（glibc）](https://github.com/goodwen-cloud/goodwen/releases/latest/download/goodwen-linux-x64.zip)
 
-解压后把整个 `goodwen` 文件夹放入 Codex 技能目录。Windows 默认为 `%USERPROFILE%\.codex\skills\`，macOS 和 Linux 默认为 `~/.codex/skills/`。打开新的 Codex 会话即可使用上面的试填提示词。
+解压并把整个 `goodwen` 文件夹复制到 Codex 技能目录。Windows 默认为 `%USERPROFILE%\.codex\skills\`，macOS 和 Linux 默认为 `~/.codex/skills/`。新开会话，使用上面的试填提示词。
 
 </details>
 
 ### ChatGPT 和 WorkBuddy
 
-1. 从宿主的插件或连接器入口添加 Goodwen。使用手动 MCP 连接时填入 `https://goodwen.cc/mcp`，验证方式选 OAuth。支持导入包的入口可以直接下载对应 ZIP。[ChatGPT 连接指引](https://goodwen.cc/agents/chatgpt) · [ChatGPT ZIP](https://github.com/goodwen-cloud/goodwen/releases/latest/download/goodwen-chatgpt.zip) · [WorkBuddy 连接指引](https://goodwen.cc/agents/workbuddy) · [WorkBuddy ZIP](https://github.com/goodwen-cloud/goodwen/releases/latest/download/goodwen-workbuddy.zip)
-2. 在 Goodwen 授权页注册或登录，确认权限后回到对话，选择 Goodwen。让智能体「列出我可以使用的 Goodwen 工作区」，然后选定问卷要放入的工作区。
-3. 发下面这句话。收到在线草稿的审核链接后，直接跳到本文的[发布到 goodwen.cc](#发布到-goodwencc)。
+在客户端添加 Goodwen，按提示在 goodwen.cc 注册或登录并授权。手动添加 MCP 服务时，地址填 `https://goodwen.cc/mcp`，验证方式选 OAuth。支持导入 ZIP 的客户端也可以使用对应安装包。
 
-> 在选定的工作区创建一份服务体验回访。第一题问整体体验，选项是「满意」「还可以改进」。第二题问「你希望我们保留或改进什么？」两题都不计分。请给我审核链接。
+| 客户端 | 连接步骤 | 最新安装包 |
+| --- | --- | --- |
+| ChatGPT | [ChatGPT 连接教程](https://goodwen.cc/agents/chatgpt) | [下载 ChatGPT ZIP](https://github.com/goodwen-cloud/goodwen/releases/latest/download/goodwen-chatgpt.zip) |
+| WorkBuddy | [WorkBuddy 连接教程](https://goodwen.cc/agents/workbuddy) | [下载 WorkBuddy ZIP](https://github.com/goodwen-cloud/goodwen/releases/latest/download/goodwen-workbuddy.zip) |
 
-## 先在电脑上试填
+回到对话，选择 Goodwen，发出下面的请求。选好工作区后，就能拿到在线草稿的审核链接。
 
-打开 Codex 返回的作者试填链接，点「开始作答」，选一个答案并保存，再填写第二题。走完两题，检查措辞、选项和提交后的结束语。想改题时，把修改告诉智能体，再打开它返回的新版本。作者试填单独保存，正式收卷使用发放链接。
+> 列出我可用的 Goodwen 工作区。等我选好后，创建一份不计分的服务回访。第一题问整体体验，选项是「满意」「还可以改进」。第二题问「你希望我们保留或改进什么？」请给我草稿审核链接。
 
-<img src="docs/media/author-preview.png" width="660" alt="作者试填页上方可选择公网或局域网发放，下方是填写者的欢迎页和开始作答按钮">
+## 把问卷发给填写者
 
-## 在同一 Wi-Fi 下收卷
+<picture>
+  <source media="(max-width: 600px)" srcset="docs/media/survey-flow-mobile.svg">
+  <img src="docs/media/survey-flow.svg" alt="从材料生成问卷后，可在同一 Wi-Fi 下收卷，或经负责人审核发布到 goodwen.cc，再按版本查看答卷。">
+</picture>
 
-1. 回到作者试填页，点「在局域网发放」。把按钮下方出现的完整地址发给同一网络中的同事。收卷期间保持电脑和本地服务运行。
-2. 填写者在手机或电脑上打开地址，点「开始作答」。选择答案后点「保存答案」，填写第二题的建议，再次保存。
-3. 在「核对并提交」页检查每道题和自己的回答。需要改时，点该题右侧的「修改」，重新保存。点「提交答卷」，看到「谢谢，你的反馈已收到。」即已完成这份回访。
+### 发布到 goodwen.cc
 
-<p align="center">
-  <img src="docs/media/answer-choice.png" width="300" alt="手机作答页，填写者已选择还可以改进">
-  <img src="docs/media/answer-review.png" width="300" alt="手机核对页，按题列出选项原文和简答，可逐题修改或提交答卷">
-</p>
+1. **打开审核链接。** 本地 Codex 用户在作者试填页点「发布到 Goodwen，获取公网链接」。首次连接时，核对要将哪些本地问卷及其后续修改保存到个人工作区，再按提示注册或登录并授权。ChatGPT 和 WorkBuddy 用户直接打开对话返回的草稿审核链接。
+2. **确认发布。** 工作区负责人在 Goodwen 网页核对本版的题目、选项和计分设置，点「确认发布」。
+3. **分享填写链接。** 本地用户回到作者试填页，点「我已审核，获取链接」。在线用户在原对话里说「为刚批准的版本创建公开填写链接」。把返回的填写链接发给客户，用另一台设备打开就能检查填写者看到的页面。
 
-手机打不开时，检查两台设备是否在同一局域网，并重新复制「在局域网发放」给出的地址。`127.0.0.1` 是发起人电脑自己的试填地址。
+同一份 Codex 用户配置会复用有效授权。之前在本机收集的答卷仍在原设备，需要导入一批历史答卷时，先核对目标工作区、已发布的版本和答卷数量，再单独确认。[本地发布操作图](docs/media/publish-guide.svg) · [网页审核教程](https://goodwen.cc/help/review-and-distribute)
 
-## 发布到 goodwen.cc
+### 在同一 Wi-Fi 下收卷
 
-客户在外地，或你需要关机后继续收卷时，可以把问卷放到 goodwen.cc，用公网填写链接发放。
+回到本地作者试填页，点「在局域网发放」，把生成的完整地址发给现场的同事。他们在同一网络下用手机打开链接，逐题保存并提交，你的电脑会收到正式答卷。收卷期间保持电脑和本地服务运行。`127.0.0.1` 只供发起人在自己电脑上试填。
 
-1. **打开在线草稿。** 本地用户在作者试填页点「发布到 Goodwen，获取公网链接」。首次发布会列出将保存到个人工作区的本机问卷数量，确认范围后通过 Codex 连接 Goodwen，按提示注册或登录并授权。ChatGPT 和 WorkBuddy 用户直接打开对话里返回的草稿审核链接。
-2. **由负责人确认发布。** 在 Goodwen 网页核对本版的题目、选项和计分设置，再点「确认发布」。需要改题时，回到智能体改稿并重新审核。[网页审核与发放指引](https://goodwen.cc/help/review-and-distribute)
-3. **取得填写链接。** 本地用户回到作者试填页，点「我已审核，获取链接」。在 ChatGPT 或 WorkBuddy 里可以说「为刚才批准的版本创建公开填写链接」。把**公网填写链接**发给客户，审核链接留给负责人。
-4. 用另一台设备打开填写链接，按提示完成作答。发布后由 goodwen.cc 持续收卷，发起人的电脑可以关机。已有的本地答卷保存在原设备，需要导入时另行选择工作区、问卷版本和批次并确认。
+<details>
+<summary>查看填写者在手机上核对答卷的示例</summary>
 
-![从本机发起发布、完成授权、在网页审核，到取得公网填写链接的操作示意](docs/media/publish-guide.svg)
+<img src="docs/media/answer-review.png" width="300" alt="手机核对页显示所选的「还可以改进」和一条具体建议，填写者可以逐题修改再提交。">
 
-## 查看回答或导出 CSV
+</details>
 
-**本地收卷**后，回到 Codex，指定刚才发放的版本和导出位置。
+## 查看答卷
 
-> 查看这一版服务回访的正式答卷，列出每个选项的人数，把简答原文一起导出到当前目录的 feedback.csv。
+在发放问卷的工作区或本地 Codex 对话里，指明要查看的版本。
 
-**公网收卷**后，在已连接 Goodwen 的智能体里选定同一工作区。问卷改过题时，指明要分析哪次发放的版本。
+- **现场收卷后导出 CSV**　“统计这版服务回访每个选项的人数，把简答原文一起导出到当前目录的 `feedback.csv`。”
+- **公网收卷后分析建议**　“查看刚发布的服务回访，按提及人数排列改进建议，每条附上对应的题目和填写者原话。”
 
-> 查看刚刚发布的服务回访，统计有多少人满意、多少人希望改进。把最常见的改进建议按人数排列，每条附上对应题目和填写者原话。
+## 教程与源码
 
-同一份 Codex 用户配置会复用有效的 Goodwen 授权。换设备或宿主时，在对应宿主重新连接。终端操作、选网卡和旧版升级见[完整操作教程](docs/guide.md)，在线答卷的筛选与分析见[官网指引](https://goodwen.cc/help/read-and-analyze)。
+- 从作者试填到手机作答的完整示例、终端命令及旧版升级步骤，见[图文教程](docs/guide.md)。在线答卷的筛选和分析见[官网教程](https://goodwen.cc/help/read-and-analyze)。
+- 本机运行器和示例位于 [skills/goodwen](skills/goodwen/)。[ChatGPT](packages/chatgpt/) 和 [WorkBuddy](packages/workbuddy/) 共用这份技能，各自提供客户端配置。
+- 开发使用 Python 3.12。GitHub Actions 自动构建并验证五个安装包。[构建说明](docs/build-plan.md) · [最新发布](https://github.com/goodwen-cloud/goodwen/releases/latest) · [SHA-256 校验清单](https://github.com/goodwen-cloud/goodwen/releases/latest/download/SHA256SUMS)
 
-## 源码与发布
-
-技能正文、本机运行器和示例在 [skills/goodwen](skills/goodwen/)。[ChatGPT](packages/chatgpt/) 与 [WorkBuddy](packages/workbuddy/) 使用同一份技能正文和各自的 MCP 配置。GitHub Actions 在 Windows、macOS 和 Linux 上构建并验证本机运行器。新版本通过后自动发布五个安装包及 [SHA-256 校验清单](https://github.com/goodwen-cloud/goodwen/releases/latest/download/SHA256SUMS)。
-
-开发使用 Python 3.12。构建命令与发布规则见[构建与验收说明](docs/build-plan.md)。本项目采用 [Apache-2.0](LICENSE)，代码和依赖来源见 [NOTICE](NOTICE)。
+[Apache-2.0 许可证](LICENSE) · [第三方声明](NOTICE)

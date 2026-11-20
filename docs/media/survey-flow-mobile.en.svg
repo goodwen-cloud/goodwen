@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="388" height="578" viewBox="0 0 388 578" role="img" aria-labelledby="title desc" lang="en">
+  <title id="title">How to share a service visit survey</title>
+  <desc id="desc">Choose materials, draft the survey and try it yourself. Collect on the same Wi-Fi while your computer is running, or get the survey approved on Goodwen and share a public link. Then read the responses for that version.</desc>
+  <style>
+    text{font-family:Inter,Arial,sans-serif;fill:#322e31}
+    .title{font-size:23px;font-weight:750}.heading{font-size:19px;font-weight:700}.body{font-size:15px}
+  </style>
+  <rect x="1" y="1" width="386" height="576" rx="6" fill="#fffcf7" stroke="#ded2c6"/>
+  <text x="19" y="36" class="title">Share on Wi-Fi or online</text>
+  <rect x="18" y="56" width="352" height="76" rx="4" fill="white" stroke="#e2d9cc"/>
+  <path d="M32 76h13l6 6v24H32zM44 76v8h7m-15 6h10m-10 5h8" fill="none" stroke="#66534f" stroke-width="1.6" stroke-linejoin="round"/>
+  <text x="64" y="86" class="heading">Materials → Draft → Preview</text>
+  <text x="64" y="112" class="body">Ask for a rating and a comment.</text>
+  <path d="M36 132v297m0-236h16m-16 159h16" fill="none" stroke="#ada097" stroke-width="1.6"/>
+  <rect x="50" y="147" width="320" height="141" rx="4" fill="#eaf3ec" stroke="#b6d1bf"/>
+  <circle cx="36" cy="193" r="4" fill="#3e7258"/>
+  <text x="67" y="178" class="heading" style="fill:#285a43">On the same Wi-Fi</text>
+  <g class="body"><text x="67" y="209">Create a local network link.</text><text x="67" y="235">Open it on a phone on the same Wi-Fi.</text><text x="67" y="262">Keep the host running to collect responses.</text></g>
+  <rect x="50" y="304" width="320" height="161" rx="4" fill="#fff0ea" stroke="#e6b6ac"/>
+  <circle cx="36" cy="352" r="4" fill="#a64864"/>
+  <text x="67" y="336" class="heading" style="fill:#8a3851">On goodwen.cc</text>
+  <g class="body"><text x="67" y="366">Sign in and authorize Goodwen.</text><text x="67" y="392">The owner reviews and publishes.</text><text x="67" y="418">Send respondents the public link.</text><text x="67" y="444">You can now turn off your computer.</text></g>
+  <path d="M36 429v56h153m-5-4 5 4-5 4" fill="none" stroke="#8c7e74" stroke-width="1.6" stroke-linejoin="round"/>
+  <rect x="18" y="497" width="352" height="62" rx="4" fill="#332e36"/>
+  <text x="35" y="523" class="heading" style="fill:#fff">Read responses for this version</text>
+  <text x="35" y="547" class="body" style="fill:#f5e8e3">Count each choice and quote suggestions.</text>
+</svg>

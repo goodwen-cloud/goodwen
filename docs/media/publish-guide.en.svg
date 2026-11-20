@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="440" viewBox="0 0 680 440" role="img" aria-labelledby="title desc" lang="en">
+  <title id="title">Publish a local survey to goodwen.cc</title>
+  <desc id="desc">Start in the local author preview. On first connection, sign up or sign in and authorize Goodwen. The workspace owner approves the version on the website. Return to the preview to get the public link for respondents.</desc>
+  <defs><style>
+    text{font-family:Inter,Arial,sans-serif;fill:#322e31}
+    .role{font-size:17px;font-weight:650}.action{font-size:19px;font-weight:700}.detail{font-size:15px;fill:#655a56}
+    .num text{font:700 16px Inter,Arial,sans-serif;fill:white;text-anchor:middle}
+  </style></defs>
+  <rect x="1" y="1" width="678" height="438" rx="6" fill="#fffcf8" stroke="#e0d5c9"/>
+  <text x="26" y="42" style="font-size:26px;font-weight:730">From local preview to public response link</text>
+  <path d="M48 94v268" stroke="#c8b5a5" stroke-width="2" fill="none"/>
+  <g fill="#403841"><circle cx="48" cy="99" r="15"/><circle cx="48" cy="182" r="15"/><circle cx="48" cy="265" r="15"/><circle cx="48" cy="348" r="15"/></g>
+  <g class="num"><text x="48" y="105">1</text><text x="48" y="188">2</text><text x="48" y="271">3</text><text x="48" y="354">4</text></g>
+  <g class="role"><text x="78" y="105">Author</text><text x="78" y="188">Author</text><text x="78" y="271">Owner</text><text x="78" y="354">Author</text></g>
+  <g fill="none" stroke="#e1d7cc"><path d="M196 143h450M196 226h450M196 309h450"/></g>
+  <rect x="194" y="75" width="308" height="36" rx="3" fill="#25543f"/>
+  <text class="action" x="207" y="100" style="fill:white">Send this version to Goodwen</text>
+  <text class="detail" x="198" y="132">Start in the author preview with your questions and images.</text>
+  <text class="action" x="198" y="183">Connect your Goodwen account</text>
+  <text class="detail" x="198" y="212">On first connection, check which local drafts will be saved.</text>
+  <rect x="194" y="241" width="96" height="35" rx="3" fill="#ffead9"/>
+  <text class="action" x="208" y="265" style="fill:#75442d">Publish</text>
+  <text class="detail" x="198" y="295">Open the review link and check the questions, choices and scoring.</text>
+  <rect x="194" y="324" width="234" height="35" rx="3" fill="#e5f1e8"/>
+  <text class="action" x="207" y="348" style="fill:#25543f">Get the response link</text>
+  <text class="detail" x="198" y="378">Return to the preview and copy the public link for respondents.</text>
+  <path d="M27 399h626" stroke="#e1d7cc"/>
+  <text class="detail" x="27" y="423">Open the link on another device. Goodwen collects responses even if your computer is off.</text>
+</svg>
