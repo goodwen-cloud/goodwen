@@ -52,19 +52,49 @@ function cover() {
   for(const line of p.instructions || [])paper.append(el("p",line));
   paper.append(btn(t("开始作答"), async()=>{state=await api("begin",{language:language.value}); draw();}));
 }
+function reviewAnswer(question, answer) {
+  if (answer == null || question.type === "short") {
+    return el("p", answer ?? "—", "review-answer review-text");
+  }
+  const selected = Array.isArray(answer) ? answer : [answer];
+  const response = el("div", null, "review-answer");
+  for (const option of question.options) {
+    if (!selected.includes(option.key)) continue;
+    const row = el("div", null, "review-option");
+    row.append(el("strong", option.key), rich(option.text_html));
+    response.append(row);
+  }
+  return response;
+}
+function review(spec) {
+  paper.append(el("h1", t("核对并提交")));
+  if (spec.behavior.allow_backtracking) {
+    const list = el("ol", null, "review-list");
+    for (const [index, question] of spec.questions.entries()) {
+      const item = el("li");
+      const body = el("div", null, "review-body");
+      const prompt = rich(question.stem_html);
+      prompt.className = "review-prompt";
+      prompt.id = "review-question-" + index;
+      body.append(prompt, reviewAnswer(question, state.answers[question.qid]));
+      const edit = btn(t("修改"), () => { editing = index; draw(); }, "review-edit");
+      edit.setAttribute("aria-label", t("修改") + " " + question.qid);
+      edit.setAttribute("aria-describedby", prompt.id);
+      item.append(body, edit);
+      list.append(item);
+    }
+    paper.append(list);
+  }
+  paper.append(btn(t("提交答卷"), async () => { state = await api("submit", {}); draw(); }));
+}
 function draw() {
   clearInterval(timer); paper.replaceChildren();
   const spec=state.spec; language.value=spec.language;
   document.documentElement.lang=spec.language;
   if (state.submitted) {appendImage(spec.end_image); paper.append(el("h1",spec.participant.completion_message));return;}
   if(editing===undefined && state.cursor===state.count) {
-    paper.append(el("h1",t("核对并提交")));
-    if(spec.behavior.allow_backtracking) {
-      for(const [index,q] of spec.questions.entries()) {
-        paper.append(btn(q.qid+" · "+(state.answers[q.qid]||"—"),()=>{editing=index;draw();},"secondary"));
-      }
-    }
-    paper.append(btn(t("提交答卷"),async()=>{state=await api("submit",{});draw();}));return;
+    review(spec);
+    return;
   }
   const pos=editing??state.cursor;
   const q=spec.behavior.allow_backtracking?spec.questions[pos]:spec.questions[0];
@@ -78,7 +108,8 @@ function draw() {
     input.checked=Array.isArray(selected)?selected.includes(o.key):selected===o.key;
     label.append(input,el("strong",o.key),rich(o.text_html));form.append(label);
   }
-  const next=el("button",t("保存答案"));next.type="submit";form.append(next);
+  const actions=el("div",null,"actions");
+  const next=el("button",t("保存答案"));next.type="submit";actions.append(next);
   form.onsubmit=async event=>{
     event.preventDefault();next.disabled=true;
     try {const values=new FormData(form).getAll("answer");
@@ -86,7 +117,8 @@ function draw() {
       editing=undefined;errorBox.textContent="";draw();
     } catch(e){errorBox.textContent=e.message;next.disabled=false;}
   };
-  if(spec.behavior.allow_backtracking && pos>0) form.append(btn(t("上一题"),()=>{editing=pos-1;draw();},"secondary"));
+  if(spec.behavior.allow_backtracking && pos>0) actions.append(btn(t("上一题"),()=>{editing=pos-1;draw();},"secondary"));
+  form.append(actions);
   paper.append(form);
   if(state.deadline) {
     const time=el("p",null,"timer");paper.append(time);const start=Date.now(),delta=state.deadline-state.server_now;
