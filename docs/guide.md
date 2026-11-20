@@ -6,11 +6,25 @@
 
 **本机 Codex**
 
-1. 在[下载页](https://github.com/goodwen-cloud/goodwen/releases/latest)选择与你电脑对应的 ZIP。Windows 用 `windows-x64`，Apple Silicon Mac 用 `macos-arm64`，使用 glibc 的 Linux x64 用 `linux-x64`。
-2. 解压，复制里面整个 `goodwen` 文件夹。macOS / Linux 放入 `~/.codex/skills/`，Windows 放入 `%USERPROFILE%\.codex\skills\`。完成后应能看到 `skills/goodwen/SKILL.md`，同一目录下有 `scripts/` 和 `examples/`。
-3. 打开新的 Codex 会话，输入下面这句话。本地包已经包含对应系统的 Python 和依赖，离线也能校验、试填和收卷。根据材料写题的对话使用宿主模型。
+在本地 Codex 对话里粘贴整段提示词。Codex 会使用内置的技能安装器把 Goodwen 安装到你的技能目录，并校验随附的问卷。[Codex 技能安装说明](https://developers.openai.com/codex/skills/#install-curated-skills-for-local-use)
+
+```text
+$skill-installer 请从下面的 GitHub 地址安装 Goodwen，并用自带的服务回访示例验证安装。
+https://github.com/goodwen-cloud/goodwen/tree/main/skills/goodwen
+```
+
+第一次校验需要联网准备对应系统的 Python 和依赖。校验结果应为《服务体验回访》、2 道题。接着在下一条消息里输入下面这句话，打开智能体返回的链接即可试填。
 
 > 用 $goodwen 把自带的服务回访示例复制到当前工作目录。校验并保存问卷，给我作者试填链接。
+
+<details>
+<summary>手动安装离线包</summary>
+
+1. 在能联网的设备上从[下载页](https://github.com/goodwen-cloud/goodwen/releases/latest)选择目标电脑对应的 ZIP。Windows 用 `windows-x64`，Apple Silicon Mac 用 `macos-arm64`，使用 glibc 的 Linux x64 用 `linux-x64`。
+2. 解压，复制里面整个 `goodwen` 文件夹。macOS 和 Linux 放入 `~/.codex/skills/`，Windows 放入 `%USERPROFILE%\.codex\skills\`。完成后应能看到 `skills/goodwen/SKILL.md`，同一目录下有 `scripts/` 和 `examples/`。
+3. 新开一个 Codex 会话，使用上面的试填提示词。离线包自带运行环境，本地校验、试填和局域网收卷都能离线进行。根据材料写题的对话使用宿主模型。
+
+</details>
 
 **ChatGPT 或 WorkBuddy**
 

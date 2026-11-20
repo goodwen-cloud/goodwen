@@ -17,7 +17,7 @@
       }
     }
   },
-  "version": "0.1.5",
+  "version": "0.1.6",
   "minWorkbuddyVersion": "4.24.0",
   "examples_zh": [
     "根据这些产品资料设计一份客户需求调研，先交给我审核。",

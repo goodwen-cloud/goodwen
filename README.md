@@ -2,7 +2,7 @@
 
 用 Goodwen 把手里的材料做成问卷，在智能体里查看填写者的真实回答。你可以先在电脑上试填，让同一 Wi-Fi 下的同事现场作答，也可以把问卷发布到 goodwen.cc，让外部客户用手机填写。
 
-**[下载安装包](https://github.com/goodwen-cloud/goodwen/releases/latest)**　·　**[注册或登录 Goodwen](https://goodwen.cc/login)**　·　[完整图文教程](docs/guide.md)
+**[在 Codex 中用提示词安装](#本地-codex)**　·　[下载安装包](https://github.com/goodwen-cloud/goodwen/releases/latest)　·　[注册或登录 Goodwen](https://goodwen.cc/login)　·　[完整图文教程](docs/guide.md)
 
 <picture>
   <source media="(max-width: 600px)" srcset="docs/media/survey-flow-mobile.svg">
@@ -13,13 +13,27 @@
 
 ### 本地 Codex
 
-1. 下载适合电脑的离线包。[Windows x64](https://github.com/goodwen-cloud/goodwen/releases/latest/download/goodwen-windows-x64.zip) · [macOS Apple Silicon](https://github.com/goodwen-cloud/goodwen/releases/latest/download/goodwen-macos-arm64.zip) · [Linux x64（glibc）](https://github.com/goodwen-cloud/goodwen/releases/latest/download/goodwen-linux-x64.zip)
-2. 解压，把整个 `goodwen` 文件夹复制到 Codex 技能目录。Windows 放入 `%USERPROFILE%\.codex\skills\`，macOS 和 Linux 放入 `~/.codex/skills/`。打开复制后的文件夹，应能看到 `SKILL.md`、`scripts/` 和 `examples/`。包里已附本地运行环境。
-3. 新开一个 Codex 会话，输入下面这句话。智能体会给你一个能在本机浏览器打开的作者试填链接。
+在本机的 Codex 对话里粘贴这段提示词即可安装，适用于 Windows x64、Apple Silicon Mac 和 Linux x64（glibc）。
+
+```text
+$skill-installer 请从下面的 GitHub 地址安装 Goodwen，并用自带的服务回访示例验证安装。
+https://github.com/goodwen-cloud/goodwen/tree/main/skills/goodwen
+```
+
+首次运行会联网准备本机环境。Codex 确认《服务体验回访》校验通过、共 2 道题后，在下一条消息里试填。
 
 > 用 $goodwen 把自带的《服务体验回访》示例复制到当前工作目录。校验并保存问卷，给我作者试填链接。
 
 也可以直接附上自己的材料，说明想问谁、想弄清什么，并让智能体给你试填链接。
+
+<details>
+<summary>在离线电脑上手动安装</summary>
+
+在能联网的设备上下载目标电脑对应的离线包，包内已附运行环境。[Windows x64](https://github.com/goodwen-cloud/goodwen/releases/latest/download/goodwen-windows-x64.zip) · [macOS Apple Silicon](https://github.com/goodwen-cloud/goodwen/releases/latest/download/goodwen-macos-arm64.zip) · [Linux x64（glibc）](https://github.com/goodwen-cloud/goodwen/releases/latest/download/goodwen-linux-x64.zip)
+
+解压后把整个 `goodwen` 文件夹放入 Codex 技能目录。Windows 默认为 `%USERPROFILE%\.codex\skills\`，macOS 和 Linux 默认为 `~/.codex/skills/`。打开新的 Codex 会话即可使用上面的试填提示词。
+
+</details>
 
 ### ChatGPT 和 WorkBuddy
 

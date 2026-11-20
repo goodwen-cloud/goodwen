@@ -14,7 +14,7 @@ description: 用 Goodwen 从材料制作问卷或测评，在本机试填、局�
 
 ## 本机制作、试填与收卷
 
-在本地安装目录运行 `scripts/run.sh`，Windows 使用 `powershell -NoProfile -ExecutionPolicy Bypass -File <技能目录>/scripts/run.ps1`。以下命令指启动器的参数，返回 JSON。首次使用时，完整离线包会从随包制品准备运行环境。
+在本地安装目录运行 `sh scripts/run.sh`，Windows 使用 `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run.ps1`。以下命令是启动器的参数，返回 JSON。从 GitHub 安装时，首次运行会下载并校验对应系统的 Python 和依赖。离线包使用随包文件准备运行环境。
 
 1. 按目的和用户选定的材料在工作目录编写 QML v3。图片放在相邻的 `assets/`。本地安装目录的 `references/qml-spec.md` 是写作规范，`examples/feedback/quiz.md` 是可复制试填的带图示例。
 2. 运行 `validate <quiz.md>`，按诊断修正，再用 `save <quiz.md>` 保存。记住回执中的 `survey_id` 和 `snapshot_id`，每次改稿后重新校验和保存。`list` 可找回已有问卷。已连接账户的作者明确要求仅留本机时，先 `pause` 再保存，用 `local-only <id> on` 标记该问卷。

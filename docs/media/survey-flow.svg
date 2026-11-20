@@ -17,10 +17,10 @@
       .connector{fill:none;stroke:#776b65;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
     </style>
   </defs>
-  <rect x="1" y="1" width="778" height="506" rx="23" fill="#fffcf7" stroke="#ddd4c8"/>
-  <path d="M643 2h114a20 20 0 0 1 20 20v46H643z" fill="url(#dots)" opacity=".62"/>
+  <rect x="1" y="1" width="778" height="506" rx="6" fill="#fffcf7" stroke="#ddd4c8"/>
+  <path d="M643 2h129a5 5 0 0 1 5 5v61H643z" fill="url(#dots)" opacity=".62"/>
   <text class="title" x="26" y="47">一份问卷，两种发放方式</text>
-  <rect x="26" y="72" width="728" height="84" rx="12" fill="#fff" stroke="#e2d9cc"/>
+  <rect x="26" y="72" width="728" height="84" rx="4" fill="#fff" stroke="#e2d9cc"/>
   <g color="#64514e">
     <use href="#document" x="43" y="98"/><use href="#pencil" x="290" y="98"/><use href="#preview" x="532" y="98"/>
   </g>
@@ -31,8 +31,8 @@
   <path class="connector" d="M646 156v16q0 6-6 6H210q-6 0-6 6v13" marker-end="url(#arrow)"/>
   <path class="connector" d="M575 178v19" marker-end="url(#arrow)"/>
   <circle cx="575" cy="178" r="3" fill="#776b65"/>
-  <rect x="26" y="202" width="352" height="194" rx="14" fill="#eaf3ec" stroke="#b6d1bf"/>
-  <rect x="402" y="202" width="352" height="194" rx="14" fill="#fff0ea" stroke="#e6b6ac"/>
+  <rect x="26" y="202" width="352" height="194" rx="4" fill="#eaf3ec" stroke="#b6d1bf"/>
+  <rect x="402" y="202" width="352" height="194" rx="4" fill="#fff0ea" stroke="#e6b6ac"/>
   <g color="#255a46"><use href="#wifi" x="46" y="221"/></g>
   <g color="#953956"><use href="#world" x="422" y="221"/></g>
   <text class="lane" x="86" y="245">现场收卷</text><text class="lane" x="463" y="245">公网收卷</text>
@@ -44,7 +44,7 @@
   <text class="note" x="48" y="380" style="fill:#315640">收卷期间保持电脑和本地服务运行</text>
   <text class="note" x="424" y="380" style="fill:#87394e">发布后，电脑关机也能继续收卷</text>
   <path class="connector" d="M203 396v11q0 5 5 5h365q5 0 5-5v-11M390 412v14" marker-end="url(#arrow)"/>
-  <rect x="26" y="431" width="728" height="53" rx="12" fill="#332e36"/>
+  <rect x="26" y="431" width="728" height="53" rx="4" fill="#332e36"/>
   <g color="#ffd477"><use href="#results" x="47" y="445"/></g>
   <text x="88" y="465" style="font-size:20px;font-weight:700;fill:white">查看这一版的答卷</text>
   <text x="304" y="465" style="font-size:17px;fill:#f3e8e3">汇总满意度，引用具体建议，决定先改哪一项</text>
