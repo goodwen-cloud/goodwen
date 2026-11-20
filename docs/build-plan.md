@@ -2,6 +2,8 @@
 
 技能正文与共用参考资料在 `skills/goodwen/` 维护。本机安装包含原生运行器，ChatGPT 和 WorkBuddy 使用同一套在线工作流程，各自通过宿主 OAuth 连接 Goodwen MCP。
 
+产品在所有语言中的展示名统一写作 **Goodwen**。README 标题、技能名称和平台包展示名都使用这一写法，技能调用标识为 `goodwen`。
+
 | 工作项 | 实现 | 验收方式 |
 | --- | --- | --- |
 | 安装 | 在 `skills/goodwen` 提供技能、示例和启动器，按平台锁定 Python、依赖及其摘要 | 在新宿主安装后，从 Codex 技能目录发现 `goodwen`。解开完整包，在离线环境校验示例 |

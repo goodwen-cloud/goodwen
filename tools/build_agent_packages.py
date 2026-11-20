@@ -86,7 +86,8 @@ def validate_packages(expected_scopes: set[str] | None) -> dict[str, str]:
             if expected_scopes is not None:
                 require(set(scopes) == expected_scopes, "WorkBuddy 默认授权范围与服务端契约不符")
             require(tuple(map(int, meta["minWorkbuddyVersion"].split("."))) >= (4, 24, 0), "云端授权配置需要 WorkBuddy 4.24.0")
-            for field in ("name", "name_zh", "name_en", "description", "description_zh", "description_en"):
+            require(all(meta[field] == "Goodwen" for field in ("name", "name_zh", "name_en")), "WorkBuddy 各语言展示名必须为 Goodwen")
+            for field in ("description", "description_zh", "description_en"):
                 require(isinstance(meta[field], str) and bool(meta[field].strip()), f"缺少 {field}")
             for field in ("examples_zh", "examples_en"):
                 require(2 <= len(meta[field]) <= 5 and all(isinstance(x, str) and x.strip() for x in meta[field]), f"示例不符: {field}")
@@ -99,7 +100,8 @@ def validate_packages(expected_scopes: set[str] | None) -> dict[str, str]:
             openai = meta["extensions"]["com.openai"]
             require(not openai.get("apps") and not openai.get("hooks"), "公开上传包不包含 apps/hooks")
             interface = openai["interface"]
-            require(0 < len(interface["displayName"]) <= 30 and 0 < len(interface["shortDescription"]) <= 30, "目录名称或副标题超长")
+            require(interface["displayName"] == "Goodwen", "ChatGPT 展示名必须为 Goodwen")
+            require(0 < len(interface["shortDescription"]) <= 30, "目录副标题长度不符")
             require(len(interface["longDescription"]) <= 4000, "完整介绍超长")
             require(interface["category"] == "Business & Operations", "分类不符")
             prompts = interface["defaultPrompt"]

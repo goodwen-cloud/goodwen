@@ -1,4 +1,4 @@
-<h1><img src="packages/chatgpt/assets/icon.png" width="54" height="54" align="center" alt=""> Goodwen 顾得问</h1>
+<h1><img src="packages/chatgpt/assets/icon.png" width="54" height="54" align="center" alt=""> Goodwen</h1>
 
 **在你熟悉的智能体里，把工作资料做成问卷，发给真正要回答的人。** 你可以在电脑上试填，让同一 Wi-Fi 下的同事当场回答，也可以把问卷发布到 goodwen.cc，发给客户。收卷后回到对话，按这一版的真实回答整理建议。
 

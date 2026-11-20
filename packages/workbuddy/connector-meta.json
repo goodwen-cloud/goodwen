@@ -1,6 +1,6 @@
 {
-  "name": "Goodwen 顾得问",
-  "name_zh": "Goodwen 顾得问",
+  "name": "Goodwen",
+  "name_zh": "Goodwen",
   "name_en": "Goodwen",
   "description": "Use AI agents to ask focused questions, collect human responses, and build traceable evidence for decisions.",
   "description_zh": "AI 评估与决策工作流：依据选定资料提问，收集真人回答，分析差异并追溯依据，支持需求调研、供应商评估、招聘与培训测评。",
@@ -17,7 +17,7 @@
       }
     }
   },
-  "version": "0.1.4",
+  "version": "0.1.5",
   "minWorkbuddyVersion": "4.24.0",
   "examples_zh": [
     "根据这些产品资料设计一份客户需求调研，先交给我审核。",
