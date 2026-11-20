@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="388" height="578" viewBox="0 0 388 578" role="img" aria-labelledby="title desc" lang="zh-CN">
+  <title id="title">服务回访的发放路径</title>
+  <desc id="desc">选定资料，生成并试填问卷。现场收卷使用同一 Wi-Fi 的局域网链接，电脑保持运行。公网收卷需登录 Goodwen，经网页审核发布后分享公网填写链接。最后查看正式答卷。</desc>
+  <style>
+    text{font-family:Inter,"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif;fill:#322e31}
+    .title{font-size:23px;font-weight:750}.heading{font-size:19px;font-weight:700}.body{font-size:15px}
+  </style>
+  <rect x="1" y="1" width="386" height="576" rx="18" fill="#fffcf7" stroke="#ded2c6"/>
+  <text x="19" y="36" class="title">一份问卷，两种发放方式</text>
+  <rect x="18" y="56" width="352" height="76" rx="11" fill="white" stroke="#e2d9cc"/>
+  <path d="M32 76h13l6 6v24H32zM44 76v8h7m-15 6h10m-10 5h8" fill="none" stroke="#66534f" stroke-width="1.6" stroke-linejoin="round"/>
+  <text x="64" y="86" class="heading">选资料 → 拟题 → 作者试填</text>
+  <text x="64" y="112" class="body">服务体验回访：一道单选，一句建议</text>
+  <path d="M36 132v297m0-236h16m-16 159h16" fill="none" stroke="#ada097" stroke-width="1.6"/>
+  <rect x="50" y="147" width="320" height="141" rx="12" fill="#eaf3ec" stroke="#b6d1bf"/>
+  <circle cx="36" cy="193" r="4" fill="#3e7258"/>
+  <text x="67" y="178" class="heading" style="fill:#285a43">现场收卷</text>
+  <g class="body"><text x="67" y="209">选择「在局域网发放」</text><text x="67" y="235">填写者在同一 Wi-Fi 下打开链接</text><text x="67" y="262">电脑保持运行，正式答卷保存在本机</text></g>
+  <rect x="50" y="304" width="320" height="161" rx="12" fill="#fff0ea" stroke="#e6b6ac"/>
+  <circle cx="36" cy="352" r="4" fill="#a64864"/>
+  <text x="67" y="336" class="heading" style="fill:#8a3851">公网收卷</text>
+  <g class="body"><text x="67" y="366">注册或登录 goodwen.cc 并授权</text><text x="67" y="392">负责人在网页审核并确认发布</text><text x="67" y="418">分享公网填写链接给客户</text><text x="67" y="444">电脑关机后也能持续收卷</text></g>
+  <path d="M36 429v56h153m-5-4 5 4-5 4" fill="none" stroke="#8c7e74" stroke-width="1.6" stroke-linejoin="round"/>
+  <rect x="18" y="497" width="352" height="62" rx="12" fill="#332e36"/>
+  <text x="35" y="523" class="heading" style="fill:#fff">查看这一版的正式答卷</text>
+  <text x="35" y="547" class="body" style="fill:#f5e8e3">汇总选项人数，结合原话整理改进建议</text>
+</svg>

@@ -156,7 +156,6 @@ def build_packages(target: Path, *, expected_scopes: set[str] | None = None) -> 
             require(all(zip_file.read(p) == data for p, data in expected.items()), f"ZIP 内容不符: {name}")
         checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
         checksums.append(f"{checksum}  {archive.name}")
-        print(f"已生成 {archive}（{len(files)} 个文件）")
         if name == "goodwen-connector":
             description = read_json(PACKAGES / "workbuddy/connector-meta.json")["description_zh"]
             platform, platform_name = "workbuddy", "WorkBuddy"
@@ -175,7 +174,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=ROOT / "dist/agents")
     args = parser.parse_args()
-    build_packages(args.output_dir)
+    for archive, _ in build_packages(args.output_dir):
+        print(archive.name)
 
 
 if __name__ == "__main__":

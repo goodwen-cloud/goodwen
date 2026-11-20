@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="440" viewBox="0 0 680 440" role="img" aria-labelledby="title desc" lang="zh-CN">
+  <title id="title">把本机问卷发布到 goodwen.cc 的操作顺序</title>
+  <desc id="desc">先在作者预览选择发布，首次使用在 Goodwen 注册或登录并授权。负责人在网页核对当前版本并确认发布。回到作者预览点击我已审核，获取链接，把公网填写链接交给填写者。</desc>
+  <defs><style>
+    text{font-family:Inter,"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif;fill:#322e31}
+    .role{font-size:17px;font-weight:650}.action{font-size:19px;font-weight:700}.detail{font-size:15px;fill:#655a56}
+    .num text{font:700 16px Inter,Arial,sans-serif;fill:white;text-anchor:middle}
+  </style></defs>
+  <rect x="1" y="1" width="678" height="438" rx="21" fill="#fffcf8" stroke="#e0d5c9"/>
+  <text x="26" y="42" style="font-size:26px;font-weight:730">从作者预览到公网填写链接</text>
+  <path d="M48 94v268" stroke="#c8b5a5" stroke-width="2" fill="none"/>
+  <g fill="#403841"><circle cx="48" cy="99" r="15"/><circle cx="48" cy="182" r="15"/><circle cx="48" cy="265" r="15"/><circle cx="48" cy="348" r="15"/></g>
+  <g class="num"><text x="48" y="105">1</text><text x="48" y="188">2</text><text x="48" y="271">3</text><text x="48" y="354">4</text></g>
+  <g class="role"><text x="78" y="105">本机作者</text><text x="78" y="188">账号授权</text><text x="78" y="271">工作区负责人</text><text x="78" y="354">本机作者</text></g>
+  <g fill="none" stroke="#e1d7cc"><path d="M196 143h450M196 226h450M196 309h450"/></g>
+  <rect x="194" y="75" width="308" height="36" rx="8" fill="#25543f"/>
+  <text class="action" x="207" y="100" style="fill:white">发布到 Goodwen，获取公网链接</text>
+  <text class="detail" x="198" y="132">从这份问卷的预览页发起，沿用当前题目与图片。</text>
+  <text class="action" x="198" y="183">在 goodwen.cc 注册或登录并授权</text>
+  <text class="detail" x="198" y="212">首次连接时核对个人工作区。已有有效授权可复用。</text>
+  <rect x="194" y="241" width="116" height="35" rx="8" fill="#ffead9"/>
+  <text class="action" x="208" y="265" style="fill:#75442d">确认发布</text>
+  <text class="detail" x="198" y="295">打开审核链接，检查文案、题目、选项与评分规则。</text>
+  <rect x="194" y="324" width="211" height="35" rx="8" fill="#e5f1e8"/>
+  <text class="action" x="207" y="348" style="fill:#25543f">我已审核，获取链接</text>
+  <text class="detail" x="198" y="378">回到预览页，复制返回的公网填写链接发给填写者。</text>
+  <path d="M27 399h626" stroke="#e1d7cc"/>
+  <text class="detail" x="27" y="423">成功标志　另一台设备能打开填写页，发起人的电脑可以关机。</text>
+</svg>

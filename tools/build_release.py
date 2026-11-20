@@ -19,12 +19,10 @@ LOCK = json.loads((SKILL / "scripts/runtime-lock.json").read_text())
 
 def fetch(asset, cache):
     path = cache / asset["name"]
-    if (
-        path.exists()
-        and hashlib.file_digest(path.open("rb"), "sha256").hexdigest()
-        == asset["sha256"]
-    ):
-        return path
+    if path.exists():
+        with path.open("rb") as stream:
+            if hashlib.file_digest(stream, "sha256").hexdigest() == asset["sha256"]:
+                return path
     request = Request(asset["url"], headers={"User-Agent": "goodwen-local-release"})
     with tempfile.NamedTemporaryFile(dir=cache, delete=False) as pending:
         tmp = Path(pending.name)
@@ -40,6 +38,15 @@ def fetch(asset, cache):
             raise
     os.replace(tmp, path)
     return path
+
+
+def add_file(package, path, relative, *, stored=False):
+    info = zipfile.ZipInfo(f"{SKILL.name}/{relative}", date_time=(2026, 1, 1, 0, 0, 0))
+    info.create_system = 3
+    info.external_attr = (0o100755 if relative == "scripts/run.sh" else 0o100644) << 16
+    info.compress_type = zipfile.ZIP_STORED if stored else zipfile.ZIP_DEFLATED
+    with path.open("rb") as source, package.open(info, "w") as destination:
+        shutil.copyfileobj(source, destination)
 
 
 def main():
@@ -69,28 +76,21 @@ def main():
         config = LOCK["platforms"][os_name]
         archive = target / f"goodwen-local-{LOCK['version']}-{os_name}.zip"
         with ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as package:
-            for path in sorted(SKILL.rglob("*")):
+            for path in sorted(SKILL.rglob("*"), key=lambda p: p.as_posix()):
                 if (
                     path.is_file()
                     and "__pycache__" not in path.parts
                     and path.suffix != ".pyc"
                 ):
-                    package.write(path, path.relative_to(SKILL.parent).as_posix())
+                    add_file(package, path, path.relative_to(SKILL).as_posix())
             for name in ("LICENSE", "NOTICE", "docs/build-plan.md"):
-                package.write(ROOT / name, f"{SKILL.name}/{name}")
-            readme = ROOT / "README.md"
-            offline_readme = readme.read_text(encoding="utf-8").partition("## 源码与构建")[0].rstrip() + "\n"
-            package.writestr(
-                zipfile.ZipInfo.from_file(readme, f"{SKILL.name}/README.md"),
-                offline_readme,
-                compress_type=zipfile.ZIP_DEFLATED,
-            )
+                add_file(package, ROOT / name, name)
+            add_file(package, ROOT / "docs/guide.md", "README.md")
+            for image in sorted((ROOT / "docs/media").iterdir()):
+                if image.suffix in {".png", ".svg"}:
+                    add_file(package, image, "media/" + image.name)
             for asset in [config["python"], *config["wheels"]]:
-                package.write(
-                    cache / asset["name"],
-                    f"{SKILL.name}/offline/" + asset["name"],
-                    compress_type=zipfile.ZIP_STORED,
-                )
+                add_file(package, cache / asset["name"], "offline/" + asset["name"], stored=True)
     for archive in sorted(target.glob(f"goodwen-local-{LOCK['version']}-*.zip")):
         with archive.open("rb") as stream:
             checksums.append(

@@ -11,6 +11,7 @@ from http import HTTPStatus
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from socketserver import TCPServer
 from urllib.parse import parse_qs, unquote, urlsplit
 
 from . import attempts
@@ -24,6 +25,13 @@ from .quiz_languages import (
 
 WEB = Path(__file__).resolve().parents[2] / "assets/web"
 STATIC = {"app.js", "style.css", "index.html"}
+
+
+class LocalHTTPServer(ThreadingHTTPServer):
+    def server_bind(self):
+        # 入口使用显式 IPv4，局域网没有反向 DNS 时也能立即启动。
+        TCPServer.server_bind(self)
+        self.server_name, self.server_port = self.server_address
 
 
 class Application:
@@ -43,7 +51,7 @@ class Application:
             application = app
             author_listener = private
 
-        return ThreadingHTTPServer((host, port), Handler)
+        return LocalHTTPServer((host, port), Handler)
 
     @property
     def origin(self):

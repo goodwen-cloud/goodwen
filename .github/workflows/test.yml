@@ -1,7 +1,16 @@
-name: Verify Goodwen
-on: [push, pull_request]
+name: Build and release Goodwen
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
 jobs:
   native:
+    name: Offline / ${{ matrix.platform }}
     strategy:
       fail-fast: false
       matrix:
@@ -11,8 +20,8 @@ jobs:
           - { os: macos-15, platform: macos-arm64 }
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - run: python -m pip install -r requirements.txt
@@ -21,16 +30,88 @@ jobs:
       - name: Extract the complete skill
         shell: python
         run: |
-          import json
           from pathlib import Path
           from zipfile import ZipFile
-          version = json.loads(Path("skills/goodwen/scripts/runtime-lock.json").read_text())["version"]
-          with ZipFile(f"dist/local/goodwen-local-{version}-${{ matrix.platform }}.zip") as package:
+          archive, = Path("dist/local").glob("*.zip")
+          with ZipFile(archive) as package:
               package.extractall("unpacked")
-      - name: Validate with the offline runtime
+      - name: Validate with the bundled runtime
         if: runner.os != 'Windows'
         run: sh unpacked/goodwen/scripts/run.sh validate unpacked/goodwen/examples/feedback/quiz.md
-      - name: Validate with the offline runtime on Windows
+      - name: Validate with the bundled runtime on Windows
         if: runner.os == 'Windows'
-        shell: powershell
+        shell: pwsh
         run: '& .\unpacked\goodwen\scripts\run.ps1 validate .\unpacked\goodwen\examples\feedback\quiz.md'
+      - uses: actions/upload-artifact@v7
+        with:
+          name: goodwen-${{ matrix.platform }}
+          path: dist/local/
+          if-no-files-found: error
+          compression-level: 0
+
+  agents:
+    name: ChatGPT and WorkBuddy
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.txt
+      - run: python tools/build_agent_packages.py
+      - uses: actions/upload-artifact@v7
+        with:
+          name: goodwen-agents
+          path: dist/agents/
+          if-no-files-found: error
+          compression-level: 0
+
+  release:
+    name: GitHub Release
+    needs: [native, agents]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    concurrency:
+      group: goodwen-release
+      cancel-in-progress: false
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Check the distribution version
+        id: version
+        shell: bash
+        run: |
+          tag="v$(jq -er '.version' skills/goodwen/scripts/runtime-lock.json)"
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          state=$(gh release list --limit 1000 --json tagName,isDraft |
+            jq -r --arg tag "$tag" '.[] | select(.tagName == $tag) | if .isDraft then "draft" else "published" end')
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "state=$state" >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@v8
+        if: steps.version.outputs.state != 'published'
+        with:
+          pattern: goodwen-*
+          path: artifacts/
+      - name: Verify and publish the five downloads
+        if: steps.version.outputs.state != 'published'
+        shell: bash
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          RELEASE_STATE: ${{ steps.version.outputs.state }}
+        run: |
+          python3 tools/prepare_release.py artifacts release
+          if git show-ref --verify --quiet "refs/tags/$TAG"; then
+            test "$(git rev-parse "$TAG^{commit}")" = "$GITHUB_SHA"
+          fi
+          if [[ "$RELEASE_STATE" == draft ]]; then
+            test "$(gh release view "$TAG" --json targetCommitish --jq .targetCommitish)" = "$GITHUB_SHA"
+          else
+            gh release create "$TAG" --draft --target "$GITHUB_SHA" --title "Goodwen $TAG" --notes-file release/notes.md
+          fi
+          gh release upload "$TAG" release/*.zip release/SHA256SUMS --clobber
+          gh release edit "$TAG" --draft=false

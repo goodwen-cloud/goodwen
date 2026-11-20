@@ -2,9 +2,12 @@
 
 import json
 from pathlib import Path
+import sys
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "skills/goodwen/scripts"))
+from goodwen_local import __version__
 PLATFORMS = {
     "linux-x64": ("x86_64-unknown-linux-gnu", "manylinux", "x86_64"),
     "macos-arm64": ("aarch64-apple-darwin", "macosx", "arm64"),
@@ -31,7 +34,7 @@ def main():
         name: fetch(f"https://pypi.org/pypi/{name}/{version}/json")["urls"]
         for name, version in VERSIONS.items()
     }
-    lock = {"version": "0.1.1", "platforms": {}}
+    lock = {"version": __version__, "platforms": {}}
     for key, (target, os_tag, arch) in PLATFORMS.items():
         filename = f"cpython-{PYTHON_VERSION}+{PYTHON_TAG}-{target}-install_only_stripped.tar.gz"
         asset = next(item for item in release["assets"] if item["name"] == filename)
