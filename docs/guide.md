@@ -6,14 +6,9 @@
 
 **本机 Codex**
 
-在本地 Codex 对话里粘贴整段提示词。Codex 会使用内置的技能安装器把 Goodwen 安装到你的技能目录，并校验随附的问卷。[Codex 技能安装说明](https://developers.openai.com/codex/skills/#install-curated-skills-for-local-use)
+打开 [Goodwen 的 Codex 安装说明](https://goodwen.cc/agents/codex?lang=zh-CN#install)，复制当前正式版的安装提示词，粘贴到本机 Codex。首次校验需要联网，结果应为《服务体验回访》、共 2 道题。
 
-```text
-$skill-installer 请从下面的 GitHub 地址安装 Goodwen，并用自带的服务回访示例验证安装。
-https://github.com/goodwen-cloud/goodwen/tree/main/skills/goodwen
-```
-
-第一次校验需要联网准备对应系统的 Python 和依赖。校验结果应为《服务体验回访》、2 道题。接着在下一条消息里输入下面这句话，打开智能体返回的链接即可试填。
+接着在下一条消息里输入下面这句话，打开智能体返回的链接即可试填。
 
 > 用 $goodwen 把自带的服务回访示例复制到当前工作目录。校验并保存问卷，给我作者试填链接。
 

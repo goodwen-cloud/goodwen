@@ -9,12 +9,7 @@ Goodwen 帮你在智能体对话里把材料做成问卷，发给填写者，再
 
 ### 本地 Codex
 
-把这段提示词粘贴到本机的 Codex。首次运行需要联网，校验成功时会显示《服务体验回访》、共 2 道题。
-
-```text
-$skill-installer 请从下面的 GitHub 地址安装 Goodwen，并用自带的服务回访示例验证安装。
-https://github.com/goodwen-cloud/goodwen/tree/main/skills/goodwen
-```
+打开 [Goodwen 的 Codex 安装说明](https://goodwen.cc/agents/codex?lang=zh-CN#install)，复制当前正式版的安装提示词，粘贴到本机 Codex。首次校验需要联网，结果应为《服务体验回访》、共 2 道题。
 
 安装后，新开一个 Codex 会话，试试这句话。也可以附上自己的材料，说明想问谁、想弄清什么。
 

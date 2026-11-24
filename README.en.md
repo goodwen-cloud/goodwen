@@ -9,12 +9,7 @@ Goodwen turns material you give your AI agent into a survey. Try it yourself, sh
 
 ### Local Codex
 
-Paste this prompt into Codex on your computer. The first run needs internet access. A successful check reports a survey named **服务体验回访** (service visit feedback) with two questions.
-
-```text
-$skill-installer Install Goodwen from the GitHub URL below. Verify the installation by validating the included service visit feedback survey.
-https://github.com/goodwen-cloud/goodwen/tree/main/skills/goodwen
-```
+Open the [Goodwen installation guide for Codex](https://goodwen.cc/agents/codex?lang=en#install), copy the installation prompt for the current release and paste it into local Codex. The first validation requires internet access and reports the sample survey title and two questions.
 
 Start a new Codex session and try this prompt. To work with your own material, attach it and tell the agent who will answer and what you want to learn.
 

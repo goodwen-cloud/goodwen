@@ -113,5 +113,5 @@ jobs:
           else
             gh release create "$TAG" --draft --target "$GITHUB_SHA" --title "Goodwen $TAG" --notes-file release/notes.md
           fi
-          gh release upload "$TAG" release/*.zip release/SHA256SUMS --clobber
+          gh release upload "$TAG" release/*.zip release/SHA256SUMS release/release-manifest.json --clobber
           gh release edit "$TAG" --draft=false
